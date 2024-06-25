@@ -1,0 +1,49 @@
+[tool.poetry]
+name = "expedite"
+version = "0.1.0a1"
+description = "Simple encrypted file transfer service"
+authors = ["Akashdeep Dhar <akashdeep.dhar@gmail.com>"]
+license = "GPL-3.0-or-later"
+maintainers = ["Akashdeep Dhar <akashdeep.dhar@gmail.com>"]
+readme = "README.md"
+homepage = "https://github.com/gridhead/expedite"
+repository = "https://github.com/gridhead/expedite"
+documentation = "https://github.com/gridhead/expedite/blob/main/README.md"
+keywords = [""]
+classifiers= [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: System Administrators",
+    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3",
+    "Topic :: Security",
+    "Topic :: Security :: Cryptography",
+    "Topic :: System :: Networking",
+]
+
+[tool.poetry.dependencies]
+python = ">=3.10,<4"
+websockets = "^12.0"
+click = "^8.1.7"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.1.3 || ^8.0.0"
+pytest-cov = "^4.1.0 || ^5.0.0"
+ruff = "^0.2.0 || ^0.3.0"
+tox = "^4.0.0"
+
+[tool.ruff]
+line-length = 100
+fix = true
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "S", "B", "UP"]
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+ed-server = "expedite.server.main:main"
+ed-client = "expedite.client.main:main"
