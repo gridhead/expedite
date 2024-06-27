@@ -28,29 +28,42 @@ from websockets.exceptions import ConnectionClosed
 import sys
 from expedite.config import standard
 from expedite.view import failure, warning
-from expedite.client.conn import insert, identify_permission, expiry_exit, jump_transmission, kill_transmission, lone_transmission
+from expedite.client.conn import (
+    deliver_connection_to_server, 
+    collect_permission_to_join, 
+    deliver_suspension_from_expiry, 
+    collect_connection_from_pairness, 
+    collect_suspension_from_mismatch,
+    collect_suspension_from_pairless,
+    collect_metadata,
+    deliver_metadata
+)
 from json import loads
 
 
 async def oper():
     try:
         async with connect(standard.client_addr) as sockobjc:
-            asyncio.get_event_loop().call_later(standard.client_time, lambda: asyncio.ensure_future(expiry_exit(sockobjc)))
-            await insert(sockobjc)
+            asyncio.get_event_loop().call_later(standard.client_time, lambda: asyncio.ensure_future(deliver_suspension_from_expiry(sockobjc)))
+            await deliver_connection_to_server(sockobjc)
             async for mesgtext in sockobjc:
                 mesgdict = loads(mesgtext)
                 if mesgdict["call"] == "okay":
-                    await identify_permission(mesgdict["iden"])
+                    await collect_permission_to_join(mesgdict["iden"])
                 elif mesgdict["call"] == "note":
-                    await jump_transmission(mesgdict["iden"])
+                    await collect_connection_from_pairness(mesgdict["iden"])
+                    if standard.client_plan == "SEND":
+                        await deliver_metadata(sockobjc)
                 elif mesgdict["call"] == "awry":
-                    await kill_transmission(mesgdict["iden"])
+                    await collect_suspension_from_mismatch(mesgdict["iden"])
                     await sockobjc.close()
                     sys.exit(1)
                 elif mesgdict["call"] == "lone":
-                    await lone_transmission(mesgdict["iden"])
+                    await collect_suspension_from_pairless(mesgdict["iden"])
                     await sockobjc.close()
                     sys.exit(1)
+                elif mesgdict["call"] == "meta":
+                    await collect_metadata(mesgdict["name"], mesgdict["size"])
     except ConnectionClosed as expt:
         warning(f"{expt}")
         failure("Exiting.")

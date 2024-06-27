@@ -24,9 +24,10 @@ or replicated with the express permission of Red Hat, Inc.
 from json import dumps
 from expedite.view import warning, general, failure
 from expedite.config import standard
+from expedite.client.base import figure
 
 
-async def insert(sockobjc) -> bool:
+async def deliver_connection_to_server(sockobjc) -> bool:
     mesgdict = {
         "call": "join",
         "plan": standard.client_plan,
@@ -43,14 +44,14 @@ async def insert(sockobjc) -> bool:
         return False
 
 
-async def identify_permission(iden: str = standard.client_iden) -> bool:
+async def collect_permission_to_join(iden: str = standard.client_iden) -> bool:
     standard.client_iden = iden
     general(f"Successfully connected to the network.")
     warning(f"You are now identified as {iden} in the network.")
     return True
 
 
-async def expiry_exit(sockobjc) -> bool:
+async def deliver_suspension_from_expiry(sockobjc) -> bool:
     if not standard.client_pair:
         mesgdict = {
             "call": "rest",
@@ -69,7 +70,7 @@ async def expiry_exit(sockobjc) -> bool:
         return False
 
 
-async def jump_transmission(iden: str = standard.client_endo) -> bool:
+async def collect_connection_from_pairness(iden: str = standard.client_endo) -> bool:
     standard.client_endo = iden
     standard.client_pair = True
     general(f"Attempting pairing with {standard.client_endo}.")
@@ -77,7 +78,28 @@ async def jump_transmission(iden: str = standard.client_endo) -> bool:
     return True
 
 
-async def kill_transmission(iden: str = standard.client_endo) -> bool:
+async def collect_metadata(name: str = standard.client_filename, size: str = standard.client_filesize):
+    standard.client_filename, standard.client_filesize = name, size
+    general(f"Collecting '{standard.client_filename}' ({standard.client_filesize} bytes).")
+
+
+async def deliver_metadata(sockobjc):
+    filename, filesize = figure()
+    await sockobjc.send(
+        dumps(
+            {
+                "call": "meta",
+                "part": standard.client_endo,
+                "name": filename,
+                "size": filesize,
+            }
+        )
+    )
+    general(f"Delivering '{filename}' ({filesize} bytes).")
+    return True
+
+
+async def collect_suspension_from_mismatch(iden: str = standard.client_endo) -> bool:
     standard.client_endo = iden
     general(f"Attempting pairing with {standard.client_endo}.")
     warning(f"Mismatch interactions.")
@@ -85,7 +107,7 @@ async def kill_transmission(iden: str = standard.client_endo) -> bool:
     return True
 
 
-async def lone_transmission(iden: str = standard.client_endo) -> bool:
+async def collect_suspension_from_pairless(iden: str = standard.client_endo) -> bool:
     standard.client_endo = iden
     general(f"Attempting pairing with {standard.client_endo}.")
     warning(f"Hitherto paired.")

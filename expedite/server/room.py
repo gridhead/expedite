@@ -22,7 +22,7 @@ or replicated with the express permission of Red Hat, Inc.
 
 
 from expedite.config import standard
-from expedite.server.conn import insert, remove, inform
+from expedite.server.conn import exchange_insert, exchange_remove, exchange_inform, exchange_launch
 from json import loads
 
 
@@ -31,22 +31,24 @@ async def oper(sockobjc):
         async for mesgtext in sockobjc:
             mesgdict = loads(mesgtext)
             if mesgdict["call"] == "join":
-                identity = await insert(sockobjc, mesgdict["plan"], mesgdict["scan"], mesgdict["wait"])
+                identity = await exchange_insert(sockobjc, mesgdict["plan"], mesgdict["scan"], mesgdict["wait"])
                 if identity:
-                    pairpage = await inform(sockobjc, mesgdict["plan"], mesgdict["scan"], identity)
+                    pairpage = await exchange_inform(sockobjc, mesgdict["plan"], mesgdict["scan"], identity)
                     if pairpage == 1:
                         otherend = standard.connection_dict[identity]["sock"]
-                        await remove(otherend)
-                        await remove(sockobjc)
+                        await exchange_remove(otherend)
+                        await exchange_remove(sockobjc)
                         await otherend.close()
                         await sockobjc.close()
                     elif pairpage == 2:
-                        await remove(sockobjc)
+                        await exchange_remove(sockobjc)
                         await sockobjc.close()
                 else:
                     await sockobjc.close()
+            elif mesgdict["call"] == "meta":
+                await exchange_launch(mesgdict["part"], mesgdict["name"], mesgdict["size"])
             elif mesgdict["call"] == "rest":
-                await remove(sockobjc)
+                await exchange_remove(sockobjc)
                 await sockobjc.close()
     finally:
-        await remove(sockobjc)
+        await exchange_remove(sockobjc)

@@ -27,7 +27,7 @@ from uuid import uuid4
 from json import dumps
 
 
-async def insert(sockobjc, plan: str, scan: str, time: int) -> str | bool:
+async def exchange_insert(sockobjc, plan: str, scan: str, time: int) -> str | bool:
     if sockobjc not in standard.connection_list:
         if plan in ["SEND", "RECV"]:
             identity = uuid4().hex[0:8].upper()
@@ -40,11 +40,6 @@ async def insert(sockobjc, plan: str, scan: str, time: int) -> str | bool:
                 "part": "",
             }
             standard.connection_list.add(sockobjc)
-            mesgdict = {
-                "call": "okay",
-                "iden": identity
-            }
-            mesgtext = dumps(mesgdict)
             if plan == "SEND":
                 warning(f"{identity} joined with the intention of delivering.")
             elif plan == "RECV":
@@ -53,7 +48,7 @@ async def insert(sockobjc, plan: str, scan: str, time: int) -> str | bool:
                 warning(f"{identity} is waiting for client for {time} seconds.")
             else:
                 warning(f"{identity} is looking for {scan} for {time} seconds.")
-            await sockobjc.send(mesgtext)
+            await sockobjc.send(dumps({"call": "okay", "iden": identity}))
             return identity
         else:
             return False
@@ -61,7 +56,7 @@ async def insert(sockobjc, plan: str, scan: str, time: int) -> str | bool:
         return False
 
 
-async def remove(sockobjc) -> bool:
+async def exchange_remove(sockobjc) -> bool:
     if sockobjc not in standard.connection_list:
         return False
     else:
@@ -75,62 +70,37 @@ async def remove(sockobjc) -> bool:
         return True
 
 
-async def inform(sockobjc, plan: str, scan: str, iden: str) -> int:
+async def exchange_inform(sockobjc, plan: str, scan: str, iden: str) -> int:
     if scan in standard.connection_dict:
         otherend = standard.connection_dict[scan]["sock"]
         if not standard.connection_dict[scan]["pair"]:
             if plan != standard.connection_dict[scan]["plan"]:
                 success(f"{iden} and {scan} are positively paired.")
-                await otherend.send(
-                    dumps(
-                        {
-                            "call": "note",
-                            "iden": iden,
-                        }
-                    )
-                )
-                await sockobjc.send(
-                    dumps(
-                        {
-                            "call": "note",
-                            "iden": scan,
-                        }
-                    )
-                )
+                await otherend.send(dumps({"call": "note", "iden": iden}))
+                await sockobjc.send(dumps({"call": "note", "iden": scan}))
                 standard.connection_dict[iden]["pair"] = True
-                standard.connection_dict[iden]["path"] = scan
+                standard.connection_dict[iden]["part"] = scan
                 standard.connection_dict[scan]["pair"] = True
-                standard.connection_dict[scan]["path"] = iden
+                standard.connection_dict[scan]["part"] = iden
                 return 0
             else:
                 failure(f"{iden} and {scan} are negatively paired.")
-                await otherend.send(
-                    dumps(
-                        {
-                            "call": "awry",
-                            "iden": iden
-                        }
-                    )
-                )
-                await sockobjc.send(
-                    dumps(
-                        {
-                            "call": "awry",
-                            "iden": scan
-                        }
-                    )
-                )
+                await otherend.send(dumps({"call": "awry", "iden": iden}))
+                await sockobjc.send(dumps({"call": "awry", "iden": scan}))
                 return 1
         else:
-            failure(f"{iden} and {scan} cannot pair as {scan} is already paired")
-            await sockobjc.send(
-                dumps(
-                    {
-                        "call": "lone",
-                        "iden": scan
-                    }
-                )
-            )
+            failure(f"{iden} and {scan} cannot pair as {scan} is already paired.")
+            await sockobjc.send(dumps({"call": "lone", "iden": scan}))
             return 2
     else:
         return 3
+
+
+async def exchange_launch(iden: str = standard.client_iden, name: str = standard.client_filename, size: str = standard.client_filesize):
+    warning(f"{standard.connection_dict[iden]["part"]} attempting to share file metadata to {iden}.")
+    if iden in standard.connection_dict:
+        otherend = standard.connection_dict[iden]["sock"]
+        await otherend.send(dumps({"call": "meta", "part": standard.connection_dict[iden]["part"], "name": name, "size": size}))
+        return True
+    else:
+        return False

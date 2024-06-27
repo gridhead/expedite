@@ -99,13 +99,15 @@ def main(
     "pswd",
     type=str,
     default=standard.client_pswd,
-    help="Set the password for delivering encryption"
+    help="Set the password for delivering encryption",
 )
 @option(
     "-f",
     "--file",
     "file",
-    type=Path(exists=True)
+    type=Path(exists=True),
+    required=True,
+    help="Set the filepath for delivering to network",
 )
 def send(
     pswd: str = standard.client_pswd,

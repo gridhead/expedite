@@ -38,6 +38,11 @@ client_file = ""
 client_iden = ""
 client_pair = False
 
+client_filename = ""
+client_filesize = 0
+
+chunking_size = 256
+
 connection_dict = dict()
 connection_list = set()
 
