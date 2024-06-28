@@ -21,23 +21,19 @@ or replicated with the express permission of Red Hat, Inc.
 """
 
 
-from json import dumps
-from expedite.view import warning, general, failure
+import time
+from json import dumps, loads
+from expedite.view import warning, general, failure, success
 from expedite.config import standard
-from expedite.client.base import figure
+from websockets.legacy.client import WebSocketClientProtocol
+from expedite.client.base import ease_size, read_file, fuse_file
+from hashlib import sha256
 
 
-async def deliver_connection_to_server(sockobjc) -> bool:
-    mesgdict = {
-        "call": "join",
-        "plan": standard.client_plan,
-        "scan": standard.client_endo,
-        "wait": standard.client_time
-    }
-    mesgtext = dumps(mesgdict)
+async def deliver_connection_to_server(sock: WebSocketClientProtocol) -> bool:
     general("Attempting to connect to the network.")
     try:
-        await sockobjc.send(mesgtext)
+        await sock.send(dumps({"call": "join", "plan": standard.client_plan, "scan": standard.client_endo, "wait": standard.client_time}))
         return True
     except Exception as expt:
         warning(f"Failed to connect to the network - {expt}.")
@@ -51,21 +47,12 @@ async def collect_permission_to_join(iden: str = standard.client_iden) -> bool:
     return True
 
 
-async def deliver_suspension_from_expiry(sockobjc) -> bool:
+async def deliver_suspension_from_expiry(sock: WebSocketClientProtocol) -> None | bool:
     if not standard.client_pair:
-        mesgdict = {
-            "call": "rest",
-            "iden": standard.client_iden,
-        }
-        mesgtext = dumps(mesgdict)
         warning("Attempting to abandon from the network after expiry")
-        try:
-            await sockobjc.send(mesgtext)
-            failure("Exiting")
-            return True
-        except Exception as expt:
-            warning(f"Failed to abandon from the network - {expt}.")
-            return False
+        await sock.send(dumps({"call": "rest"}))
+        complete = await collect_suspension_notice("rest")
+        await elegant_exit(sock, complete)
     else:
         return False
 
@@ -78,38 +65,93 @@ async def collect_connection_from_pairness(iden: str = standard.client_endo) -> 
     return True
 
 
-async def collect_metadata(name: str = standard.client_filename, size: str = standard.client_filesize):
+async def collect_metadata(name: str = standard.client_filename, size: str = standard.client_filesize) -> bool:
     standard.client_filename, standard.client_filesize = name, size
-    general(f"Collecting '{standard.client_filename}' ({standard.client_filesize} bytes).")
-
-
-async def deliver_metadata(sockobjc):
-    filename, filesize = figure()
-    await sockobjc.send(
-        dumps(
-            {
-                "call": "meta",
-                "part": standard.client_endo,
-                "name": filename,
-                "size": filesize,
-            }
-        )
-    )
-    general(f"Delivering '{filename}' ({filesize} bytes).")
+    general(f"Collecting metadata for '{standard.client_filename}' ({ease_size(standard.client_filesize)}) from {standard.client_endo}.")
     return True
 
 
-async def collect_suspension_from_mismatch(iden: str = standard.client_endo) -> bool:
-    standard.client_endo = iden
-    general(f"Attempting pairing with {standard.client_endo}.")
-    warning(f"Mismatch interactions.")
-    failure(f"Exiting.")
+async def deliver_metadata(sock: WebSocketClientProtocol):
+    await sock.send(dumps({"call": "meta", "name": standard.client_filename, "size": standard.client_filesize}))
+    general(f"Delivering metadata for '{standard.client_filename}' ({ease_size(standard.client_filesize)}) to {standard.client_endo}.")
     return True
 
 
-async def collect_suspension_from_pairless(iden: str = standard.client_endo) -> bool:
-    standard.client_endo = iden
-    general(f"Attempting pairing with {standard.client_endo}.")
-    warning(f"Hitherto paired.")
-    failure(f"Exiting.")
+async def collect_suspension_notice(note: str = "") -> bool:
+    if note == "awry":
+        warning(f"Mismatch interactions.")
+    elif note == "lone":
+        warning(f"Hitherto paired.")
+    elif note == "dprt":
+        warning(f"Node disconnected.")
+    else:
+        warning(f"Expiry achieved.")
+    return False
+
+
+async def deliver_dropping_summon(sock: WebSocketClientProtocol) -> bool:
+    await sock.send(dumps({"call": "drop"}))
+    general(f"Delivering collection summon to {standard.client_endo}.")
     return True
+
+
+async def collect_dropping_summon() -> bool:
+    general(f"Collecting delivering summon from {standard.client_endo}.")
+    return True
+
+
+async def deliver_contents(sock: WebSocketClientProtocol) -> bool:
+    for indx in range(0, len(standard.client_bind) - 1):
+        bite = read_file(standard.client_bind[indx], standard.client_bind[indx + 1])
+        general(f"Delivering file contents to {standard.client_endo} (SHA256 {sha256(bite).hexdigest()}).")
+        await sock.send(bite)
+    return True
+
+
+async def collect_contents(pack: bytes = b"") -> bool:
+    fuse_file(pack)
+    general(f"Collecting file contents from {standard.client_endo} - (SHA256 {sha256(pack).hexdigest()})")
+    return True
+
+
+async def deliver_digest_checks(sock: WebSocketClientProtocol) -> bool:
+    general(f"Delivering contents digest for confirmation.")
+    await sock.send(dumps({"call": "hash", "data": standard.client_hash.hexdigest()}))
+    return True
+
+
+async def collect_digest_checks() -> bool:
+    general(f"Collecting contents digest for confirmation.")
+    return True
+
+
+async def deliver_confirmation(sock: WebSocketClientProtocol, data: str = standard.client_hash.hexdigest()) -> bool:
+    if data == standard.client_hash.hexdigest():
+        general(f"Contents integrity verified.")
+        await sock.send(dumps({"call": "conf", "data": 1}))
+        return True
+    else:
+        general(f"Contents integrity mismatch.")
+        await sock.send(dumps({"call": "conf", "data": 0}))
+        return False
+
+
+async def collect_confirmation(data: int = 0) -> bool:
+    if bool(data):
+        general(f"Contents integrity verified.")
+        return True
+    else:
+        general(f"Contents integrity mismatch.")
+        return False
+
+
+async def elegant_exit(sock: WebSocketClientProtocol, cond: bool = True) -> None:
+    await sock.close()
+    plan = "Delivering" if standard.client_plan == "SEND" else "Collecting"
+    if cond:
+        success(f"{plan} done after {(time.time() - standard.client_strt):.2f} seconds.")
+        standard.client_exit = 0
+    else:
+        failure(f"{plan} fail after {(time.time() - standard.client_strt):.2f} seconds.")
+        standard.client_exit = 1
+    general("Exiting.")

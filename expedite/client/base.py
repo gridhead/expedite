@@ -22,10 +22,57 @@ or replicated with the express permission of Red Hat, Inc.
 
 
 from expedite.config import standard
-from os.path import getsize, basename
+from os.path import getsize, basename, exists
 
 
-def figure() -> tuple:
-    standard.client_filename = basename(standard.client_file)
-    standard.client_filesize = getsize(standard.client_file)
-    return standard.client_filename, standard.client_filesize
+def find_size() -> int:
+    return getsize(standard.client_file)
+
+
+def find_name() -> str:
+    return basename(standard.client_file)
+
+
+def ease_size(size: int) -> str:
+    unitlist = ["B", "KB", "MB", "GB", "TB", "PB"]
+    indx, opsz = 0, size
+    if size == 0:
+        return "0 B"
+    else:
+        while opsz >= 1024 and indx < len(unitlist) - 1:
+            opsz, indx = opsz / 1024.0, indx + 1
+        return f"{opsz:.2f} {unitlist[indx]}"
+
+
+def bite_file() -> list:
+    init, size, bite = 0, standard.client_filesize, []
+    while init < size:
+        bite.append(init)
+        if size - init >= standard.chunking_size:
+            init = init + standard.chunking_size
+        else:
+            bite.append(size)
+            init = size
+    return bite
+
+
+def read_file(init: int = 0, fina: int = 0) -> bytes:
+    if exists(standard.client_file):
+        with open(standard.client_file, "rb") as file:
+            file.seek(init)
+            data = file.read(fina - init)
+            standard.client_hash.update(data)
+        return data
+    else:
+        return b""
+
+
+def fuse_file(pack: bytes = b"") -> bool:
+    if not standard.client_fileinit:
+        mode, standard.client_fileinit = "wb", True
+    else:
+        mode = "ab"
+    with open(standard.client_filename, mode) as file:
+        file.write(pack)
+        standard.client_hash.update(pack)
+    return True

@@ -22,33 +22,58 @@ or replicated with the express permission of Red Hat, Inc.
 
 
 from expedite.config import standard
-from expedite.server.conn import exchange_insert, exchange_remove, exchange_inform, exchange_launch
+from expedite.server.conn import (
+    exchange_insert,
+    exchange_remove,
+    exchange_inform,
+    exchange_launch,
+    exchange_gobyte,
+    exchange_detail,
+    exchange_digest,
+    exchange_assert
+)
 from json import loads
+from expedite.view import warning, general
+
+from websockets.exceptions import ConnectionClosed
 
 
-async def oper(sockobjc):
+async def oper(sock):
     try:
-        async for mesgtext in sockobjc:
-            mesgdict = loads(mesgtext)
-            if mesgdict["call"] == "join":
-                identity = await exchange_insert(sockobjc, mesgdict["plan"], mesgdict["scan"], mesgdict["wait"])
-                if identity:
-                    pairpage = await exchange_inform(sockobjc, mesgdict["plan"], mesgdict["scan"], identity)
-                    if pairpage == 1:
-                        otherend = standard.connection_dict[identity]["sock"]
-                        await exchange_remove(otherend)
-                        await exchange_remove(sockobjc)
-                        await otherend.close()
-                        await sockobjc.close()
-                    elif pairpage == 2:
-                        await exchange_remove(sockobjc)
-                        await sockobjc.close()
-                else:
-                    await sockobjc.close()
-            elif mesgdict["call"] == "meta":
-                await exchange_launch(mesgdict["part"], mesgdict["name"], mesgdict["size"])
-            elif mesgdict["call"] == "rest":
-                await exchange_remove(sockobjc)
-                await sockobjc.close()
+        async for mesgcont in sock:
+            if isinstance(mesgcont, str):
+                mesgdict = loads(mesgcont)
+                if mesgdict["call"] == "join":
+                    identity = await exchange_insert(sock, mesgdict["plan"], mesgdict["scan"], mesgdict["wait"])
+                    if identity:
+                        pairpage = await exchange_inform(sock, mesgdict["plan"], mesgdict["scan"], identity)
+                        if pairpage == 1:
+                            otherend = standard.connection_dict[identity]["sock"]
+                            await exchange_remove(otherend)
+                            await exchange_remove(sock)
+                            await otherend.close()
+                            await sock.close()
+                        elif pairpage == 2:
+                            await exchange_remove(sock)
+                            await sock.close()
+                    else:
+                        await sock.close()
+                elif mesgdict["call"] == "meta":
+                    await exchange_launch(sock, mesgdict["name"], mesgdict["size"])
+                elif mesgdict["call"] == "drop":
+                    await exchange_gobyte(sock)
+                elif mesgdict["call"] == "hash":
+                    await exchange_digest(sock, mesgdict["data"])
+                elif mesgdict["call"] == "conf":
+                    await exchange_assert(sock, mesgdict["data"])
+                elif mesgdict["call"] == "rest":
+                    await exchange_remove(sock)
+            else:
+                complete = await exchange_detail(sock, mesgcont)
+                if not complete:
+                    await exchange_remove(sock)
+    except ConnectionClosed as expt:
+        warning(f"Delivering client disconnected due to the disconnection of collecting client.")
+        general(expt)
     finally:
-        await exchange_remove(sockobjc)
+        await exchange_remove(sock)

@@ -30,7 +30,8 @@ from click import IntRange, option, version_option, group, Path
 from expedite import __versdata__
 from expedite.config import standard
 from expedite.client.meet import talk
-from expedite.view import failure, warning
+from expedite.view import warning, general
+from expedite.client.base import find_name, find_size, bite_file
 
 import sys
 
@@ -40,7 +41,7 @@ def work():
         run(oper())
     except OSError as expt:
         warning(f"{expt}")
-        failure("Exiting.")
+        general("Exiting.")
         sys.exit(1)
 
 
@@ -116,11 +117,15 @@ def send(
     try:
         standard.client_pass = pswd
         standard.client_file = file
+        standard.client_filesize = find_size()
+        standard.client_filename = find_name()
+        standard.client_bind = bite_file()
         standard.client_plan = "SEND"
         talk()
         work()
     except KeyboardInterrupt:
-        failure("Exiting.")
+        warning("Keyboard interrupt received.")
+        general("Exiting.")
         sys.exit(1)
 
 
@@ -146,5 +151,6 @@ def recv(
         talk()
         work()
     except KeyboardInterrupt:
-        failure("Exiting.")
+        warning("Keyboard interrupt received.")
+        general("Exiting.")
         sys.exit(1)

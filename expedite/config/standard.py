@@ -21,9 +21,11 @@ or replicated with the express permission of Red Hat, Inc.
 """
 
 
+import time
 from logging import getLogger
 from logging.config import dictConfig
 from uuid import uuid4
+from hashlib import sha256
 
 
 server_addr = "127.0.0.1"
@@ -37,14 +39,22 @@ client_endo = ""
 client_file = ""
 client_iden = ""
 client_pair = False
+client_bind = []
+client_comp = 0
+client_hash = sha256()
+client_exit = 1
+client_strt = time.time()
 
 client_filename = ""
 client_filesize = 0
+client_fileinit = False
 
-chunking_size = 256
+chunking_size = 1536
 
 connection_dict = dict()
 connection_list = set()
+
+testdict = dict()
 
 logrconf = {
     "version": 1,

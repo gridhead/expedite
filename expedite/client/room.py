@@ -21,50 +21,76 @@ or replicated with the express permission of Red Hat, Inc.
 """
 
 
-import asyncio
+from asyncio import get_event_loop, ensure_future
 from websockets import connect
 from websockets.exceptions import ConnectionClosed
 
 import sys
 from expedite.config import standard
-from expedite.view import failure, warning
+from expedite.view import warning, general
 from expedite.client.conn import (
     deliver_connection_to_server, 
     collect_permission_to_join, 
     deliver_suspension_from_expiry, 
-    collect_connection_from_pairness, 
-    collect_suspension_from_mismatch,
-    collect_suspension_from_pairless,
+    collect_connection_from_pairness,
+    collect_suspension_notice,
+    deliver_dropping_summon,
+    collect_dropping_summon,
     collect_metadata,
-    deliver_metadata
+    deliver_metadata,
+    collect_contents,
+    deliver_contents,
+    deliver_digest_checks,
+    collect_digest_checks,
+    deliver_confirmation,
+    collect_confirmation,
+    elegant_exit
 )
 from json import loads
 
 
 async def oper():
     try:
-        async with connect(standard.client_addr) as sockobjc:
-            asyncio.get_event_loop().call_later(standard.client_time, lambda: asyncio.ensure_future(deliver_suspension_from_expiry(sockobjc)))
-            await deliver_connection_to_server(sockobjc)
-            async for mesgtext in sockobjc:
-                mesgdict = loads(mesgtext)
-                if mesgdict["call"] == "okay":
-                    await collect_permission_to_join(mesgdict["iden"])
-                elif mesgdict["call"] == "note":
-                    await collect_connection_from_pairness(mesgdict["iden"])
-                    if standard.client_plan == "SEND":
-                        await deliver_metadata(sockobjc)
-                elif mesgdict["call"] == "awry":
-                    await collect_suspension_from_mismatch(mesgdict["iden"])
-                    await sockobjc.close()
-                    sys.exit(1)
-                elif mesgdict["call"] == "lone":
-                    await collect_suspension_from_pairless(mesgdict["iden"])
-                    await sockobjc.close()
-                    sys.exit(1)
-                elif mesgdict["call"] == "meta":
-                    await collect_metadata(mesgdict["name"], mesgdict["size"])
+        async with connect(standard.client_addr) as sock:
+            get_event_loop().call_later(standard.client_time, lambda: ensure_future(deliver_suspension_from_expiry(sock)))
+            await deliver_connection_to_server(sock)
+            async for mesgcont in sock:
+                if isinstance(mesgcont, str):
+                    mesgdict = loads(mesgcont)
+                    if mesgdict["call"] == "okay":
+                        await collect_permission_to_join(mesgdict["iden"])
+                    elif mesgdict["call"] == "meta":
+                        await collect_metadata(mesgdict["name"], mesgdict["size"])
+                        if standard.client_plan == "RECV":
+                            await deliver_dropping_summon(sock)
+                    elif mesgdict["call"] == "note":
+                        await collect_connection_from_pairness(mesgdict["part"])
+                        if standard.client_plan == "SEND":
+                            await deliver_metadata(sock)
+                    elif mesgdict["call"] == "drop":
+                        await collect_dropping_summon()
+                        if standard.client_plan == "SEND":
+                            await deliver_contents(sock)
+                            await deliver_digest_checks(sock)
+                    elif mesgdict["call"] == "byte":
+                        if standard.client_plan == "RECV":
+                            await collect_contents(mesgdict["pack"])
+                    elif mesgdict["call"] == "hash":
+                        if standard.client_plan == "RECV":
+                            await collect_digest_checks()
+                            complete = await deliver_confirmation(sock, mesgdict["data"])
+                            await elegant_exit(sock, complete)
+                    elif mesgdict["call"] == "conf":
+                        if standard.client_plan == "SEND":
+                            complete = await collect_confirmation(mesgdict["data"])
+                            await elegant_exit(sock, complete)
+                    elif mesgdict["call"] in ["awry", "lone", "dprt"]:
+                        complete = await collect_suspension_notice(mesgdict["call"])
+                        await elegant_exit(sock, complete)
+                else:
+                    if standard.client_plan == "RECV":
+                        await collect_contents(mesgcont)
     except ConnectionClosed as expt:
-        warning(f"{expt}")
-        failure("Exiting.")
-        sys.exit(1)
+        await collect_suspension_notice("dprt")
+        await elegant_exit(sock, False)
+    sys.exit(standard.client_exit)

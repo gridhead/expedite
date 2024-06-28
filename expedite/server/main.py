@@ -37,8 +37,8 @@ import sys
 from websockets import serve
 
 
-def work(addr: str = standard.server_addr, port: int = standard.server_port):
-    func = serve(oper, addr, port)
+def work():
+    func = serve(oper, standard.server_addr, standard.server_port)
     get_event_loop().run_until_complete(func)
     get_event_loop().run_forever()
 
