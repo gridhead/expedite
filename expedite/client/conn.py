@@ -22,12 +22,13 @@ or replicated with the express permission of Red Hat, Inc.
 
 
 import time
-from json import dumps, loads
-from expedite.view import warning, general, failure, success
+from json import dumps
+from expedite.view import warning, general
 from expedite.config import standard
 from websockets.legacy.client import WebSocketClientProtocol
 from expedite.client.base import ease_size, read_file, fuse_file
 from hashlib import sha256
+from expedite.client.util import facade_exit
 
 
 async def deliver_connection_to_server(sock: WebSocketClientProtocol) -> bool:
@@ -49,10 +50,9 @@ async def collect_permission_to_join(iden: str = standard.client_iden) -> bool:
 
 async def deliver_suspension_from_expiry(sock: WebSocketClientProtocol) -> None | bool:
     if not standard.client_pair:
-        warning("Attempting to abandon from the network after expiry")
+        general("Attempting to abandon from the network after expiry.")
         await sock.send(dumps({"call": "rest"}))
-        complete = await collect_suspension_notice("rest")
-        await elegant_exit(sock, complete)
+        await facade_exit(sock, False, "rest")
     else:
         return False
 
@@ -75,18 +75,6 @@ async def deliver_metadata(sock: WebSocketClientProtocol):
     await sock.send(dumps({"call": "meta", "name": standard.client_filename, "size": standard.client_filesize}))
     general(f"Delivering metadata for '{standard.client_filename}' ({ease_size(standard.client_filesize)}) to {standard.client_endo}.")
     return True
-
-
-async def collect_suspension_notice(note: str = "") -> bool:
-    if note == "awry":
-        warning(f"Mismatch interactions.")
-    elif note == "lone":
-        warning(f"Hitherto paired.")
-    elif note == "dprt":
-        warning(f"Node disconnected.")
-    else:
-        warning(f"Expiry achieved.")
-    return False
 
 
 async def deliver_dropping_summon(sock: WebSocketClientProtocol) -> bool:
@@ -143,15 +131,3 @@ async def collect_confirmation(data: int = 0) -> bool:
     else:
         general(f"Contents integrity mismatch.")
         return False
-
-
-async def elegant_exit(sock: WebSocketClientProtocol, cond: bool = True) -> None:
-    await sock.close()
-    plan = "Delivering" if standard.client_plan == "SEND" else "Collecting"
-    if cond:
-        success(f"{plan} done after {(time.time() - standard.client_strt):.2f} seconds.")
-        standard.client_exit = 0
-    else:
-        failure(f"{plan} fail after {(time.time() - standard.client_strt):.2f} seconds.")
-        standard.client_exit = 1
-    general("Exiting.")

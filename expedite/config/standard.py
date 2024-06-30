@@ -56,6 +56,16 @@ connection_list = set()
 
 testdict = dict()
 
+notice_dict = {
+    "awry": "Mismatch interactions.",
+    "lone": "Hitherto paired.",
+    "dprt": "Node disconnected.",
+    "intr": "Interrupt received.",
+    "oser": "Connection failed.",
+    "iuri": "Mistaken URI.",
+    "rest": "Expiry achieved.",
+}
+
 logrconf = {
     "version": 1,
     "disable_existing_loggers": False,

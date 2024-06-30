@@ -21,6 +21,8 @@ or replicated with the express permission of Red Hat, Inc.
 """
 
 
+import sys
+
 from asyncio import run
 
 from expedite.client.room import oper
@@ -30,19 +32,24 @@ from click import IntRange, option, version_option, group, Path
 from expedite import __versdata__
 from expedite.config import standard
 from expedite.client.meet import talk
-from expedite.view import warning, general
 from expedite.client.base import find_name, find_size, bite_file
+from expedite.client.util import facade_exit
+from websockets.exceptions import InvalidURI
 
-import sys
 
-
-def work():
+def work() -> None:
+    talk()
     try:
         run(oper())
     except OSError as expt:
-        warning(f"{expt}")
-        general("Exiting.")
-        sys.exit(1)
+        run(facade_exit(None, False, "oser"))
+        sys.exit(standard.client_exit)
+    except InvalidURI as expt:
+        run(facade_exit(None, False, "iuri"))
+        sys.exit(standard.client_exit)
+    except KeyboardInterrupt as expt:
+        run(facade_exit(None, False, "intr"))
+        sys.exit(standard.client_exit)
 
 
 @group(
@@ -114,19 +121,13 @@ def send(
     pswd: str = standard.client_pswd,
     file: str = standard.client_file
 ) -> None:
-    try:
-        standard.client_pass = pswd
-        standard.client_file = file
-        standard.client_filesize = find_size()
-        standard.client_filename = find_name()
-        standard.client_bind = bite_file()
-        standard.client_plan = "SEND"
-        talk()
-        work()
-    except KeyboardInterrupt:
-        warning("Keyboard interrupt received.")
-        general("Exiting.")
-        sys.exit(1)
+    standard.client_pswd = pswd
+    standard.client_file = file
+    standard.client_filesize = find_size()
+    standard.client_filename = find_name()
+    standard.client_bind = bite_file()
+    standard.client_plan = "SEND"
+    work()
 
 
 @main.command(
@@ -145,12 +146,6 @@ def send(
 def recv(
     pswd: str = standard.client_pswd
 ) -> None:
-    try:
-        standard.client_pswd = pswd
-        standard.client_plan = "RECV"
-        talk()
-        work()
-    except KeyboardInterrupt:
-        warning("Keyboard interrupt received.")
-        general("Exiting.")
-        sys.exit(1)
+    standard.client_pswd = pswd
+    standard.client_plan = "RECV"
+    work()

@@ -27,13 +27,11 @@ from websockets.exceptions import ConnectionClosed
 
 import sys
 from expedite.config import standard
-from expedite.view import warning, general
 from expedite.client.conn import (
     deliver_connection_to_server, 
     collect_permission_to_join, 
     deliver_suspension_from_expiry, 
     collect_connection_from_pairness,
-    collect_suspension_notice,
     deliver_dropping_summon,
     collect_dropping_summon,
     collect_metadata,
@@ -44,7 +42,7 @@ from expedite.client.conn import (
     collect_digest_checks,
     deliver_confirmation,
     collect_confirmation,
-    elegant_exit
+    facade_exit
 )
 from json import loads
 
@@ -79,18 +77,16 @@ async def oper():
                         if standard.client_plan == "RECV":
                             await collect_digest_checks()
                             complete = await deliver_confirmation(sock, mesgdict["data"])
-                            await elegant_exit(sock, complete)
+                            await facade_exit(sock, complete, "done" if complete else "dprt")
                     elif mesgdict["call"] == "conf":
                         if standard.client_plan == "SEND":
                             complete = await collect_confirmation(mesgdict["data"])
-                            await elegant_exit(sock, complete)
+                            await facade_exit(sock, complete, "done" if complete else "dprt")
                     elif mesgdict["call"] in ["awry", "lone", "dprt"]:
-                        complete = await collect_suspension_notice(mesgdict["call"])
-                        await elegant_exit(sock, complete)
+                        await facade_exit(sock, False, mesgdict["call"])
                 else:
                     if standard.client_plan == "RECV":
                         await collect_contents(mesgcont)
     except ConnectionClosed as expt:
-        await collect_suspension_notice("dprt")
-        await elegant_exit(sock, False)
+        await facade_exit(sock, False, "dprt")
     sys.exit(standard.client_exit)
