@@ -44,6 +44,7 @@ client_comp = 0
 client_hash = sha256()
 client_exit = 1
 client_strt = time.time()
+client_chks = 0
 
 client_filename = ""
 client_filesize = 0
@@ -72,7 +73,7 @@ logrconf = {
     "formatters": {
         "standard": {
             "format": "%(asctime)s %(message)s",
-            "datefmt": "[%Y-%m-%d %H:%M:%S %z]",
+            "datefmt": "[%Y-%m-%d %H:%M:%S]",
         },
     },
     "handlers": {

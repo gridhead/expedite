@@ -21,6 +21,7 @@ or replicated with the express permission of Red Hat, Inc.
 """
 
 
+import asyncio
 import time
 from json import dumps
 from expedite.view import warning, general
@@ -29,6 +30,10 @@ from websockets.legacy.client import WebSocketClientProtocol
 from expedite.client.base import ease_size, read_file, fuse_file
 from hashlib import sha256
 from expedite.client.util import facade_exit
+from tqdm.asyncio import trange
+from tqdm.contrib.logging import logging_redirect_tqdm
+from tqdm.asyncio import tqdm
+from datetime import datetime
 
 
 async def deliver_connection_to_server(sock: WebSocketClientProtocol) -> bool:
@@ -65,14 +70,14 @@ async def collect_connection_from_pairness(iden: str = standard.client_endo) -> 
     return True
 
 
-async def collect_metadata(name: str = standard.client_filename, size: str = standard.client_filesize) -> bool:
-    standard.client_filename, standard.client_filesize = name, size
+async def collect_metadata(name: str = standard.client_filename, size: str = standard.client_filesize, chks: int = standard.client_chks) -> bool:
+    standard.client_filename, standard.client_filesize, standard.client_chks = name, size, chks
     general(f"Collecting metadata for '{standard.client_filename}' ({ease_size(standard.client_filesize)}) from {standard.client_endo}.")
     return True
 
 
 async def deliver_metadata(sock: WebSocketClientProtocol):
-    await sock.send(dumps({"call": "meta", "name": standard.client_filename, "size": standard.client_filesize}))
+    await sock.send(dumps({"call": "meta", "name": standard.client_filename, "size": standard.client_filesize, "chks": len(standard.client_bind)-1}))
     general(f"Delivering metadata for '{standard.client_filename}' ({ease_size(standard.client_filesize)}) to {standard.client_endo}.")
     return True
 
@@ -89,16 +94,28 @@ async def collect_dropping_summon() -> bool:
 
 
 async def deliver_contents(sock: WebSocketClientProtocol) -> bool:
-    for indx in range(0, len(standard.client_bind) - 1):
-        bite = read_file(standard.client_bind[indx], standard.client_bind[indx + 1])
-        general(f"Delivering file contents to {standard.client_endo} (SHA256 {sha256(bite).hexdigest()}).")
-        await sock.send(bite)
-    return True
+    with logging_redirect_tqdm():
+        with tqdm(total=standard.client_filesize, unit="B", unit_scale=True, unit_divisor=1024, leave=False, initial=0) as prog:
+            for indx in range(0, len(standard.client_bind) - 1):
+                bite = read_file(standard.client_bind[indx], standard.client_bind[indx + 1])
+                prog.set_description(f"{datetime.now().strftime("[%Y-%m-%d %H:%M:%S]")} SHA256 {sha256(bite).hexdigest()}")
+                prog.update(standard.client_bind[indx + 1] - standard.client_bind[indx])
+                await sock.send(bite)
+                await asyncio.sleep(0)
+        return True
 
 
-async def collect_contents(pack: bytes = b"") -> bool:
+async def collect_contents(sock: WebSocketClientProtocol, pack: bytes = b"") -> bool:
     fuse_file(pack)
-    general(f"Collecting file contents from {standard.client_endo} - (SHA256 {sha256(pack).hexdigest()})")
+    with logging_redirect_tqdm():
+        with tqdm(total=standard.client_filesize, unit="B", unit_scale=True, unit_divisor=1024, leave=False, initial=len(pack)) as prog:
+            for indx in range(standard.client_chks - 1):
+                mesgcont = await sock.recv()
+                if isinstance(mesgcont, bytes):
+                    fuse_file(mesgcont)
+                    prog.set_description(f"{datetime.now().strftime("[%Y-%m-%d %H:%M:%S]")} SHA256 {sha256(mesgcont).hexdigest()}")
+                    prog.update(len(mesgcont))
+                    await asyncio.sleep(0)
     return True
 
 

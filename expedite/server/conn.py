@@ -64,11 +64,13 @@ async def exchange_insert(
 
 async def exchange_remove(sock: WebSocketServerProtocol) -> bool:
     if sock in standard.connection_dict:
-        warning(f"{standard.connection_dict[sock]["iden"]} left.")
         if standard.connection_dict[sock]["ptsc"] in standard.connection_dict and standard.connection_dict[sock]["ptsc"].state == 1:
-            await standard.connection_dict[sock]["ptsc"].send(dumps({"call": "dprt"}))
-        standard.connection_dict.pop(sock)
+            warning(f"{standard.connection_dict[sock]["ptid"]} left.")
+            await standard.connection_dict[sock]["ptsc"].close(code=1000)
+            standard.connection_dict.pop(standard.connection_dict[sock]["ptsc"])
+        warning(f"{standard.connection_dict[sock]["iden"]} left.")
         await sock.close(code=1000)
+        standard.connection_dict.pop(sock)
         return True
     else:
         return False
@@ -107,12 +109,13 @@ async def exchange_inform(
 async def exchange_launch(
     sock: WebSocketServerProtocol,
     name: str = standard.client_filename,
-    size: str = standard.client_filesize
+    size: str = standard.client_filesize,
+    chks: str = standard.client_chks,
 ) -> bool:
     if sock in standard.connection_dict:
         if standard.connection_dict[sock]["ptsc"] in standard.connection_dict and standard.connection_dict[sock]["ptsc"].state == 1:
             general(f"{standard.connection_dict[sock]["iden"]} is attempting to share file metadata to {standard.connection_dict[sock]["ptid"]}.")
-            await standard.connection_dict[sock]["ptsc"].send(dumps({"call": "meta", "name": name, "size": size}))
+            await standard.connection_dict[sock]["ptsc"].send(dumps({"call": "meta", "name": name, "size": size, "chks": chks}))
             return True
         else:
             return False
@@ -132,6 +135,7 @@ async def exchange_gobyte(
             return False
     else:
         return False
+
 
 async def exchange_detail(
     sock: WebSocketServerProtocol,

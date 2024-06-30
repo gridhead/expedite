@@ -24,6 +24,7 @@ or replicated with the express permission of Red Hat, Inc.
 from asyncio import get_event_loop, ensure_future
 from websockets import connect
 from websockets.exceptions import ConnectionClosed
+from tqdm.asyncio import tqdm
 
 import sys
 from expedite.config import standard
@@ -58,7 +59,7 @@ async def oper():
                     if mesgdict["call"] == "okay":
                         await collect_permission_to_join(mesgdict["iden"])
                     elif mesgdict["call"] == "meta":
-                        await collect_metadata(mesgdict["name"], mesgdict["size"])
+                        await collect_metadata(mesgdict["name"], mesgdict["size"], mesgdict["chks"])
                         if standard.client_plan == "RECV":
                             await deliver_dropping_summon(sock)
                     elif mesgdict["call"] == "note":
@@ -82,11 +83,12 @@ async def oper():
                         if standard.client_plan == "SEND":
                             complete = await collect_confirmation(mesgdict["data"])
                             await facade_exit(sock, complete, "done" if complete else "dprt")
-                    elif mesgdict["call"] in ["awry", "lone", "dprt"]:
+                    elif mesgdict["call"] in ["awry", "lone"]:
                         await facade_exit(sock, False, mesgdict["call"])
                 else:
                     if standard.client_plan == "RECV":
-                        await collect_contents(mesgcont)
+                        await collect_contents(sock, mesgcont)
+        sys.exit(standard.client_exit)
     except ConnectionClosed as expt:
         await facade_exit(sock, False, "dprt")
-    sys.exit(standard.client_exit)
+        sys.exit(standard.client_exit)

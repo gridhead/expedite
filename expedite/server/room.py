@@ -59,7 +59,7 @@ async def oper(sock):
                     else:
                         await sock.close()
                 elif mesgdict["call"] == "meta":
-                    await exchange_launch(sock, mesgdict["name"], mesgdict["size"])
+                    await exchange_launch(sock, mesgdict["name"], mesgdict["size"], mesgdict["chks"])
                 elif mesgdict["call"] == "drop":
                     await exchange_gobyte(sock)
                 elif mesgdict["call"] == "hash":
