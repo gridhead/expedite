@@ -23,6 +23,7 @@ or replicated with the express permission of Red Hat, Inc.
 
 from expedite.config import standard
 from os.path import getsize, basename, exists
+from expedite.client.auth import encr_bite, decr_bite
 
 
 def find_size() -> int:
@@ -61,8 +62,9 @@ def read_file(init: int = 0, fina: int = 0) -> bytes:
         with open(standard.client_file, "rb") as file:
             file.seek(init)
             data = file.read(fina - init)
+            endt = encr_bite(data, standard.client_code, standard.client_invc)
             standard.client_hash.update(data)
-        return data
+        return endt
     else:
         return b""
 
@@ -73,6 +75,7 @@ def fuse_file(pack: bytes = b"") -> bool:
     else:
         mode = "ab"
     with open(standard.client_filename, mode) as file:
-        file.write(pack)
-        standard.client_hash.update(pack)
+        dedt = decr_bite(pack, standard.client_code, standard.client_invc)
+        file.write(dedt)
+        standard.client_hash.update(dedt)
     return True

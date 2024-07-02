@@ -22,7 +22,6 @@ or replicated with the express permission of Red Hat, Inc.
 
 
 import asyncio
-import time
 from json import dumps
 from expedite.view import warning, general
 from expedite.config import standard
@@ -30,10 +29,11 @@ from websockets.legacy.client import WebSocketClientProtocol
 from expedite.client.base import ease_size, read_file, fuse_file
 from hashlib import sha256
 from expedite.client.util import facade_exit
-from tqdm.asyncio import trange
 from tqdm.contrib.logging import logging_redirect_tqdm
 from tqdm.asyncio import tqdm
 from datetime import datetime
+from expedite.client.auth import encr_metadata, decr_metadata
+from expedite.client.excp import PasswordMistaken
 
 
 async def deliver_connection_to_server(sock: WebSocketClientProtocol) -> bool:
@@ -70,15 +70,18 @@ async def collect_connection_from_pairness(iden: str = standard.client_endo) -> 
     return True
 
 
-async def collect_metadata(name: str = standard.client_filename, size: str = standard.client_filesize, chks: int = standard.client_chks) -> bool:
-    standard.client_filename, standard.client_filesize, standard.client_chks = name, size, chks
-    general(f"Collecting metadata for '{standard.client_filename}' ({ease_size(standard.client_filesize)}) from {standard.client_endo}.")
-    return True
+async def collect_metadata(pack: bytes = b"") -> bool:
+    try:
+        general(f"Generating cryptography sign.")
+        standard.client_filename, standard.client_filesize, standard.client_chks = decr_metadata(pack)
+        return True
+    except PasswordMistaken as expt:
+        return False
 
 
-async def deliver_metadata(sock: WebSocketClientProtocol):
-    await sock.send(dumps({"call": "meta", "name": standard.client_filename, "size": standard.client_filesize, "chks": len(standard.client_bind)-1}))
-    general(f"Delivering metadata for '{standard.client_filename}' ({ease_size(standard.client_filesize)}) to {standard.client_endo}.")
+async def deliver_metadata(sock: WebSocketClientProtocol) -> bool:
+    general(f"Generating cryptography sign.")
+    await sock.send(encr_metadata())
     return True
 
 
@@ -94,6 +97,7 @@ async def collect_dropping_summon() -> bool:
 
 
 async def deliver_contents(sock: WebSocketClientProtocol) -> bool:
+    general(f"Delivering contents for '{standard.client_filename}' ({ease_size(standard.client_filesize)}) to {standard.client_endo}.")
     with logging_redirect_tqdm():
         with tqdm(total=standard.client_filesize, unit="B", unit_scale=True, unit_divisor=1024, leave=False, initial=0) as prog:
             for indx in range(0, len(standard.client_bind) - 1):
@@ -106,6 +110,7 @@ async def deliver_contents(sock: WebSocketClientProtocol) -> bool:
 
 
 async def collect_contents(sock: WebSocketClientProtocol, pack: bytes = b"") -> bool:
+    general(f"Collecting contents for '{standard.client_filename}' ({ease_size(standard.client_filesize)}) from {standard.client_endo}.")
     fuse_file(pack)
     with logging_redirect_tqdm():
         with tqdm(total=standard.client_filesize, unit="B", unit_scale=True, unit_divisor=1024, leave=False, initial=len(pack)) as prog:
@@ -114,7 +119,7 @@ async def collect_contents(sock: WebSocketClientProtocol, pack: bytes = b"") -> 
                 if isinstance(mesgcont, bytes):
                     fuse_file(mesgcont)
                     prog.set_description(f"{datetime.now().strftime("[%Y-%m-%d %H:%M:%S]")} SHA256 {sha256(mesgcont).hexdigest()}")
-                    prog.update(len(mesgcont))
+                    prog.update(len(mesgcont) - 16)
                     await asyncio.sleep(0)
     return True
 
@@ -148,3 +153,14 @@ async def collect_confirmation(data: int = 0) -> bool:
     else:
         general(f"Contents integrity mismatch.")
         return False
+
+
+async def deliver_separation_from_mistaken_password(sock: WebSocketClientProtocol) -> bool:
+    general(f"Delivering status update on mistaken password.")
+    await sock.send(dumps({"call": "flub"}))
+    return True
+
+
+async def collect_separation_from_mistaken_password() -> bool:
+    general(f"Collecting status update on mistaken password.")
+    return True

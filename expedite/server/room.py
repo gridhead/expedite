@@ -30,7 +30,8 @@ from expedite.server.conn import (
     exchange_gobyte,
     exchange_detail,
     exchange_digest,
-    exchange_assert
+    exchange_assert,
+    exchange_depart,
 )
 from json import loads
 from expedite.view import warning, general
@@ -66,6 +67,8 @@ async def oper(sock):
                     await exchange_digest(sock, mesgdict["data"])
                 elif mesgdict["call"] == "conf":
                     await exchange_assert(sock, mesgdict["data"])
+                elif mesgdict["call"] == "flub":
+                    await exchange_depart(sock)
                 elif mesgdict["call"] == "rest":
                     await exchange_remove(sock)
             else:

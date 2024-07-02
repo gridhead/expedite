@@ -49,8 +49,14 @@ client_chks = 0
 client_filename = ""
 client_filesize = 0
 client_fileinit = False
+client_saltsize = 16
+client_saltrecv = False
+client_salt = b""
+client_invc = b""
+client_code = b""
+client_metadone = False
 
-chunking_size = 1536
+chunking_size = 1024 * 256
 
 connection_dict = dict()
 connection_list = set()
@@ -65,6 +71,7 @@ notice_dict = {
     "oser": "Connection failed.",
     "iuri": "Mistaken URI.",
     "rest": "Expiry achieved.",
+    "flub": "Mistaken password.",
 }
 
 logrconf = {

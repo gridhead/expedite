@@ -143,7 +143,7 @@ async def exchange_detail(
 ) -> bool:
     if sock in standard.connection_dict:
         if standard.connection_dict[sock]["ptsc"] in standard.connection_dict and standard.connection_dict[sock]["ptsc"].state == 1:
-            general(f"{standard.connection_dict[sock]["iden"]} is delivering contents to {standard.connection_dict[sock]["ptid"]}.")
+            # general(f"{standard.connection_dict[sock]["iden"]} is delivering contents to {standard.connection_dict[sock]["ptid"]}.")
             await standard.connection_dict[sock]["ptsc"].send(pack)
             return True
         else:
@@ -177,6 +177,20 @@ async def exchange_assert(
         if standard.connection_dict[sock]["ptsc"] in standard.connection_dict and standard.connection_dict[sock]["ptsc"].state == 1:
             general(f"{standard.connection_dict[sock]["iden"]} is delivering confirmation to {standard.connection_dict[sock]["ptid"]}.")
             await standard.connection_dict[sock]["ptsc"].send(dumps({"call": "conf", "data": data}))
+            return True
+        else:
+            return False
+    else:
+        return False
+
+
+async def exchange_depart(
+    sock: WebSocketServerProtocol,
+) -> bool:
+    if sock in standard.connection_dict:
+        if standard.connection_dict[sock]["ptsc"] in standard.connection_dict and standard.connection_dict[sock]["ptsc"].state == 1:
+            # general(f"{standard.connection_dict[sock]["iden"]} is delivering confirmation to {standard.connection_dict[sock]["ptid"]}.")
+            await standard.connection_dict[sock]["ptsc"].send(dumps({"call": "flub"}))
             return True
         else:
             return False

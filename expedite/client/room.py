@@ -24,7 +24,6 @@ or replicated with the express permission of Red Hat, Inc.
 from asyncio import get_event_loop, ensure_future
 from websockets import connect
 from websockets.exceptions import ConnectionClosed
-from tqdm.asyncio import tqdm
 
 import sys
 from expedite.config import standard
@@ -43,6 +42,8 @@ from expedite.client.conn import (
     collect_digest_checks,
     deliver_confirmation,
     collect_confirmation,
+    deliver_separation_from_mistaken_password,
+    collect_separation_from_mistaken_password,
     facade_exit
 )
 from json import loads
@@ -58,10 +59,6 @@ async def oper():
                     mesgdict = loads(mesgcont)
                     if mesgdict["call"] == "okay":
                         await collect_permission_to_join(mesgdict["iden"])
-                    elif mesgdict["call"] == "meta":
-                        await collect_metadata(mesgdict["name"], mesgdict["size"], mesgdict["chks"])
-                        if standard.client_plan == "RECV":
-                            await deliver_dropping_summon(sock)
                     elif mesgdict["call"] == "note":
                         await collect_connection_from_pairness(mesgdict["part"])
                         if standard.client_plan == "SEND":
@@ -79,16 +76,31 @@ async def oper():
                             await collect_digest_checks()
                             complete = await deliver_confirmation(sock, mesgdict["data"])
                             await facade_exit(sock, complete, "done" if complete else "dprt")
+                            sys.exit(standard.client_exit)
                     elif mesgdict["call"] == "conf":
                         if standard.client_plan == "SEND":
                             complete = await collect_confirmation(mesgdict["data"])
                             await facade_exit(sock, complete, "done" if complete else "dprt")
+                            sys.exit(standard.client_exit)
+                    elif mesgdict["call"] == "flub":
+                        if standard.client_plan == "SEND":
+                            await collect_separation_from_mistaken_password()
+                            await facade_exit(sock, False, "flub")
+                            sys.exit(standard.client_exit)
                     elif mesgdict["call"] in ["awry", "lone"]:
                         await facade_exit(sock, False, mesgdict["call"])
+                        sys.exit(standard.client_exit)
                 else:
                     if standard.client_plan == "RECV":
-                        await collect_contents(sock, mesgcont)
-        sys.exit(standard.client_exit)
+                        if not standard.client_metadone:
+                            if await collect_metadata(mesgcont):
+                                await deliver_dropping_summon(sock)
+                            else:
+                                await deliver_separation_from_mistaken_password(sock)
+                                await facade_exit(sock, False, "flub")
+                                sys.exit(standard.client_exit)
+                        else:
+                            await collect_contents(sock, mesgcont)
     except ConnectionClosed as expt:
         await facade_exit(sock, False, "dprt")
         sys.exit(standard.client_exit)
