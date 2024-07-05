@@ -26,15 +26,11 @@ from expedite.server.conn import (
     exchange_insert,
     exchange_remove,
     exchange_inform,
-    exchange_launch,
-    exchange_gobyte,
-    exchange_detail,
-    exchange_digest,
-    exchange_assert,
-    exchange_depart,
+    exchange_byte,
+    exchange_json,
 )
 from json import loads
-from expedite.view import warning, general
+from expedite.view import warning, general, failure
 
 from websockets.exceptions import ConnectionClosed
 
@@ -46,35 +42,18 @@ async def oper(sock):
                 mesgdict = loads(mesgcont)
                 if mesgdict["call"] == "join":
                     identity = await exchange_insert(sock, mesgdict["plan"], mesgdict["scan"], mesgdict["wait"])
-                    if identity:
-                        pairpage = await exchange_inform(sock, mesgdict["plan"], mesgdict["scan"], identity)
-                        if pairpage == 1:
-                            otherend = standard.connection_dict[identity]["sock"]
-                            await exchange_remove(otherend)
+                    if bool(identity):
+                        if await exchange_inform(sock, mesgdict["plan"], mesgdict["scan"], identity) in [1, 2]:
                             await exchange_remove(sock)
-                            await otherend.close()
-                            await sock.close()
-                        elif pairpage == 2:
-                            await exchange_remove(sock)
-                            await sock.close()
                     else:
                         await sock.close()
-                elif mesgdict["call"] == "meta":
-                    await exchange_launch(sock, mesgdict["name"], mesgdict["size"], mesgdict["chks"])
-                elif mesgdict["call"] == "drop":
-                    await exchange_gobyte(sock)
-                elif mesgdict["call"] == "hash":
-                    await exchange_digest(sock, mesgdict["data"])
-                elif mesgdict["call"] == "conf":
-                    await exchange_assert(sock, mesgdict["data"])
-                elif mesgdict["call"] == "flub":
-                    await exchange_depart(sock)
+                elif mesgdict["call"] in ["meta", "drop", "hash", "conf", "flub"]:
+                    await exchange_json(sock, mesgdict["call"], mesgcont)
                 elif mesgdict["call"] == "rest":
+                    failure(f"{standard.connection_dict[sock]["iden"]} has achieved expiry.")
                     await exchange_remove(sock)
             else:
-                complete = await exchange_detail(sock, mesgcont)
-                if not complete:
-                    await exchange_remove(sock)
+                await exchange_byte(sock, mesgcont)
     except ConnectionClosed as expt:
         warning(f"Delivering client disconnected due to the disconnection of collecting client.")
         general(expt)

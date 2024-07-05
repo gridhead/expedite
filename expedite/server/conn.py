@@ -28,12 +28,7 @@ from json import dumps
 from websockets.legacy.server import WebSocketServerProtocol
 
 
-async def exchange_insert(
-    sock: WebSocketServerProtocol,
-    plan: str = standard.client_plan,
-    scan: str = standard.client_endo,
-    time: int = standard.client_time
-) -> str | bool:
+async def exchange_insert(sock: WebSocketServerProtocol, plan: str = standard.client_plan, scan: str = standard.client_endo, time: int = standard.client_time) -> str | bool:
     if sock not in standard.connection_dict:
         if plan in ["SEND", "RECV"]:
             identity = uuid4().hex[0:8].upper()
@@ -76,12 +71,7 @@ async def exchange_remove(sock: WebSocketServerProtocol) -> bool:
         return False
 
 
-async def exchange_inform(
-    sock: WebSocketServerProtocol,
-    plan: str = standard.client_plan,
-    scan: str = standard.client_endo,
-    iden: str = standard.client_iden
-) -> int:
+async def exchange_inform(sock: WebSocketServerProtocol, plan: str = standard.client_plan, scan: str = standard.client_endo, iden: str = standard.client_iden) -> int:
     for indx in standard.connection_dict:
         if standard.connection_dict[indx]["iden"] == scan:
             if not standard.connection_dict[indx]["pair"]:
@@ -106,16 +96,11 @@ async def exchange_inform(
     return 3
 
 
-async def exchange_launch(
-    sock: WebSocketServerProtocol,
-    name: str = standard.client_filename,
-    size: str = standard.client_filesize,
-    chks: str = standard.client_chks,
-) -> bool:
+async def exchange_json(sock: WebSocketServerProtocol, note: str = "", data: str = "") -> bool:
+    general(standard.server_note[note].format(sj=standard.connection_dict[sock]["iden"], oj=standard.connection_dict[sock]["ptid"]))
     if sock in standard.connection_dict:
         if standard.connection_dict[sock]["ptsc"] in standard.connection_dict and standard.connection_dict[sock]["ptsc"].state == 1:
-            general(f"{standard.connection_dict[sock]["iden"]} is attempting to share file metadata to {standard.connection_dict[sock]["ptid"]}.")
-            await standard.connection_dict[sock]["ptsc"].send(dumps({"call": "meta", "name": name, "size": size, "chks": chks}))
+            await standard.connection_dict[sock]["ptsc"].send(data)
             return True
         else:
             return False
@@ -123,27 +108,9 @@ async def exchange_launch(
         return False
 
 
-async def exchange_gobyte(
-    sock: WebSocketServerProtocol
-) -> bool:
+async def exchange_byte(sock: WebSocketServerProtocol, pack: bytes = b"") -> bool:
     if sock in standard.connection_dict:
         if standard.connection_dict[sock]["ptsc"] in standard.connection_dict and standard.connection_dict[sock]["ptsc"].state == 1:
-            general(f"{standard.connection_dict[sock]["iden"]} is attempting to fetch file contents from {standard.connection_dict[sock]["ptid"]}.")
-            await standard.connection_dict[sock]["ptsc"].send(dumps({"call": "drop"}))
-            return True
-        else:
-            return False
-    else:
-        return False
-
-
-async def exchange_detail(
-    sock: WebSocketServerProtocol,
-    pack: bytes = b""
-) -> bool:
-    if sock in standard.connection_dict:
-        if standard.connection_dict[sock]["ptsc"] in standard.connection_dict and standard.connection_dict[sock]["ptsc"].state == 1:
-            # general(f"{standard.connection_dict[sock]["iden"]} is delivering contents to {standard.connection_dict[sock]["ptid"]}.")
             await standard.connection_dict[sock]["ptsc"].send(pack)
             return True
         else:
@@ -151,48 +118,4 @@ async def exchange_detail(
             return False
     else:
         general("Attempting for aborting connection.")
-        return False
-
-
-async def exchange_digest(
-    sock: WebSocketServerProtocol,
-    data: str = standard.client_hash.hexdigest()
-) -> bool:
-    if sock in standard.connection_dict:
-        if standard.connection_dict[sock]["ptsc"] in standard.connection_dict and standard.connection_dict[sock]["ptsc"].state == 1:
-            general(f"{standard.connection_dict[sock]["iden"]} is delivering digest to {standard.connection_dict[sock]["ptid"]}.")
-            await standard.connection_dict[sock]["ptsc"].send(dumps({"call": "hash", "data": data}))
-            return True
-        else:
-            return False
-    else:
-        return False
-
-
-async def exchange_assert(
-    sock: WebSocketServerProtocol,
-    data: int = 0
-) -> bool:
-    if sock in standard.connection_dict:
-        if standard.connection_dict[sock]["ptsc"] in standard.connection_dict and standard.connection_dict[sock]["ptsc"].state == 1:
-            general(f"{standard.connection_dict[sock]["iden"]} is delivering confirmation to {standard.connection_dict[sock]["ptid"]}.")
-            await standard.connection_dict[sock]["ptsc"].send(dumps({"call": "conf", "data": data}))
-            return True
-        else:
-            return False
-    else:
-        return False
-
-
-async def exchange_depart(
-    sock: WebSocketServerProtocol,
-) -> bool:
-    if sock in standard.connection_dict:
-        if standard.connection_dict[sock]["ptsc"] in standard.connection_dict and standard.connection_dict[sock]["ptsc"].state == 1:
-            # general(f"{standard.connection_dict[sock]["iden"]} is delivering confirmation to {standard.connection_dict[sock]["ptid"]}.")
-            await standard.connection_dict[sock]["ptsc"].send(dumps({"call": "flub"}))
-            return True
-        else:
-            return False
-    else:
         return False

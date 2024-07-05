@@ -30,7 +30,7 @@ from websockets.legacy.client import WebSocketClientProtocol
 
 async def facade_exit(sock: WebSocketClientProtocol = None, cond: bool = True, note: str = "") -> None:
     if note != "done":
-        warning(standard.notice_dict[note])
+        warning(standard.client_note[note])
     if sock:
         await sock.close()
     plan = "Delivering" if standard.client_plan == "SEND" else "Collecting"

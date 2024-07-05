@@ -31,6 +31,14 @@ from hashlib import sha256
 server_addr = "127.0.0.1"
 server_port = 8080
 
+server_note = {
+    "meta": "{sj} is attempting to share file metadata to {oj}.",
+    "drop": "{sj} is attempting to fetch file contents from {oj}.",
+    "hash": "{sj} is delivering digest to {oj}.",
+    "conf": "{sj} is delivering confirmation to {oj}.",
+    "flub": "{sj} has received mistaken password from {oj}.",
+}
+
 client_addr = ""
 client_time = 15
 client_pswd = uuid4().hex[0:8].upper()
@@ -50,7 +58,6 @@ client_filename = ""
 client_filesize = 0
 client_fileinit = False
 client_saltsize = 16
-client_saltrecv = False
 client_salt = b""
 client_invc = b""
 client_code = b""
@@ -63,7 +70,7 @@ connection_list = set()
 
 testdict = dict()
 
-notice_dict = {
+client_note = {
     "awry": "Mismatch interactions.",
     "lone": "Hitherto paired.",
     "dprt": "Node disconnected.",

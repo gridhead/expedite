@@ -57,50 +57,49 @@ async def oper():
             async for mesgcont in sock:
                 if isinstance(mesgcont, str):
                     mesgdict = loads(mesgcont)
-                    if mesgdict["call"] == "okay":
-                        await collect_permission_to_join(mesgdict["iden"])
-                    elif mesgdict["call"] == "note":
-                        await collect_connection_from_pairness(mesgdict["part"])
-                        if standard.client_plan == "SEND":
+                    # If the data received is of STRING type
+                    if standard.client_plan in ["SEND", "RECV"]:
+                        # If the purpose of the client is either DELIVERING or COLLECTING
+                        if mesgdict["call"] == "okay":
+                            await collect_permission_to_join(mesgdict["iden"])
+                        elif mesgdict["call"] in ["awry", "lone"]:
+                            await facade_exit(sock, False, mesgdict["call"])
+                    if standard.client_plan == "SEND":
+                        # If the purpose of the client is DELIVERING
+                        if mesgdict["call"] == "note":
+                            await collect_connection_from_pairness(mesgdict["part"])
                             await deliver_metadata(sock)
-                    elif mesgdict["call"] == "drop":
-                        await collect_dropping_summon()
-                        if standard.client_plan == "SEND":
+                        elif mesgdict["call"] == "conf":
+                            complete = await collect_confirmation(mesgdict["data"])
+                            await facade_exit(sock, complete, "done" if complete else "dprt")
+                        elif mesgdict["call"] == "flub":
+                            await collect_separation_from_mistaken_password()
+                            await facade_exit(sock, False, "flub")
+                        elif mesgdict["call"] == "drop":
+                            await collect_dropping_summon()
                             await deliver_contents(sock)
                             await deliver_digest_checks(sock)
-                    elif mesgdict["call"] == "byte":
-                        if standard.client_plan == "RECV":
-                            await collect_contents(mesgdict["pack"])
-                    elif mesgdict["call"] == "hash":
-                        if standard.client_plan == "RECV":
+                    else:
+                        # If the purpose of the client is COLLECTING
+                        if mesgdict["call"] == "note":
+                            await collect_connection_from_pairness(mesgdict["part"])
+                        elif mesgdict["call"] == "hash":
                             await collect_digest_checks()
                             complete = await deliver_confirmation(sock, mesgdict["data"])
                             await facade_exit(sock, complete, "done" if complete else "dprt")
-                            sys.exit(standard.client_exit)
-                    elif mesgdict["call"] == "conf":
-                        if standard.client_plan == "SEND":
-                            complete = await collect_confirmation(mesgdict["data"])
-                            await facade_exit(sock, complete, "done" if complete else "dprt")
-                            sys.exit(standard.client_exit)
-                    elif mesgdict["call"] == "flub":
-                        if standard.client_plan == "SEND":
-                            await collect_separation_from_mistaken_password()
-                            await facade_exit(sock, False, "flub")
-                            sys.exit(standard.client_exit)
-                    elif mesgdict["call"] in ["awry", "lone"]:
-                        await facade_exit(sock, False, mesgdict["call"])
-                        sys.exit(standard.client_exit)
                 else:
+                    # If the data received is of BYTES type
                     if standard.client_plan == "RECV":
+                        # If the purpose of the client is COLLECTING
                         if not standard.client_metadone:
                             if await collect_metadata(mesgcont):
                                 await deliver_dropping_summon(sock)
                             else:
                                 await deliver_separation_from_mistaken_password(sock)
                                 await facade_exit(sock, False, "flub")
-                                sys.exit(standard.client_exit)
                         else:
                             await collect_contents(sock, mesgcont)
+            sys.exit(standard.client_exit)
     except ConnectionClosed as expt:
         await facade_exit(sock, False, "dprt")
         sys.exit(standard.client_exit)
