@@ -31,7 +31,7 @@ from expedite import __versdata__
 from expedite.config import standard
 from expedite.server.meet import talk
 from expedite.server.room import oper
-from expedite.view import failure
+from expedite.view import failure, general
 
 
 def work():
@@ -72,5 +72,14 @@ def main(addr: str = standard.server_addr, port: int = standard.server_port) -> 
         talk()
         work()
     except KeyboardInterrupt:
-        failure("Exiting.")
+        failure("Interrupt received.")
+        general("Exiting.")
         sys.exit(1)
+    except OSError:
+        failure("Port occupied.")
+        general("Exiting.")
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()

@@ -157,3 +157,7 @@ def recv(
     standard.client_pswd = pswd
     standard.client_plan = "RECV"
     work()
+
+
+if __name__ == "__main__":
+    main()
