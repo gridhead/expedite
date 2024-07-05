@@ -115,12 +115,22 @@ def main(
     required=True,
     help="Set the filepath for delivering to network",
 )
+@option(
+    "-s",
+    "--size",
+    "size",
+    type=IntRange(64, 768, clamp=True),
+    default=standard.chunking_size_kilobyte,
+    help="Set the unit size for file chunking (in KiB)",
+)
 def send(
     pswd: str = standard.client_pswd,
-    file: str = standard.client_file
+    file: str = standard.client_file,
+    size: str = standard.chunking_size_kilobyte,
 ) -> None:
     standard.client_pswd = pswd
     standard.client_file = file
+    standard.chunking_size = size * 1024
     standard.client_filesize = find_size()
     standard.client_filename = find_name()
     standard.client_bind = bite_file()

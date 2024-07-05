@@ -62,7 +62,8 @@ client_invc = b""
 client_code = b""
 client_metadone = False
 
-chunking_size = 1024 * 256
+chunking_size_kilobyte = 256
+chunking_size = 1024 * chunking_size_kilobyte
 
 connection_dict = dict()
 connection_list = set()
