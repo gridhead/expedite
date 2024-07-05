@@ -16,23 +16,24 @@ You should have received a copy of the GNU General Public License along with
 this program.  If not, see <https://www.gnu.org/licenses/>.
 
 Any Red Hat trademarks that are incorporated in the codebase or documentation
-are not subject to the GNU Affero General Public License and may only be used
-or replicated with the express permission of Red Hat, Inc.
+are not subject to the GNU General Public License and may only be utilized or
+replicated with the express permission of Red Hat, Inc.
 """
 
 
-from expedite.config import standard
-from expedite.server.conn import (
-    exchange_insert,
-    exchange_remove,
-    exchange_inform,
-    exchange_byte,
-    exchange_json,
-)
 from json import loads
-from expedite.view import warning, general, failure
 
 from websockets.exceptions import ConnectionClosed
+
+from expedite.config import standard
+from expedite.server.conn import (
+    exchange_byte,
+    exchange_inform,
+    exchange_insert,
+    exchange_json,
+    exchange_remove,
+)
+from expedite.view import failure, general, warning
 
 
 async def oper(sock):
@@ -55,7 +56,7 @@ async def oper(sock):
             else:
                 await exchange_byte(sock, mesgcont)
     except ConnectionClosed as expt:
-        warning(f"Delivering client disconnected due to the disconnection of collecting client.")
+        warning("Delivering client disconnected due to the disconnection of collecting client.")
         general(expt)
     finally:
         await exchange_remove(sock)

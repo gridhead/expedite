@@ -42,6 +42,9 @@ fix = true
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "S", "B", "UP"]
 
+[tool.ruff.lint.per-file-ignores]
+"expedite/*" = ["E501"]
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"

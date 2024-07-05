@@ -16,17 +16,16 @@ You should have received a copy of the GNU General Public License along with
 this program.  If not, see <https://www.gnu.org/licenses/>.
 
 Any Red Hat trademarks that are incorporated in the codebase or documentation
-are not subject to the GNU Affero General Public License and may only be used
-or replicated with the express permission of Red Hat, Inc.
+ are not subject to the GNU General Public License and may only be utilized or
+replicated with the express permission of Red Hat, Inc.
 """
 
 
 import time
+from hashlib import sha256
 from logging import getLogger
 from logging.config import dictConfig
 from uuid import uuid4
-from hashlib import sha256
-
 
 server_addr = "127.0.0.1"
 server_port = 8080

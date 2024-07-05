@@ -16,37 +16,38 @@ You should have received a copy of the GNU General Public License along with
 this program.  If not, see <https://www.gnu.org/licenses/>.
 
 Any Red Hat trademarks that are incorporated in the codebase or documentation
-are not subject to the GNU Affero General Public License and may only be used
-or replicated with the express permission of Red Hat, Inc.
+are not subject to the GNU General Public License and may only be utilized or
+replicated with the express permission of Red Hat, Inc.
 """
 
 
-from asyncio import get_event_loop, ensure_future
+import sys
+from asyncio import ensure_future, get_event_loop
+from json import loads
+
 from websockets import connect
 from websockets.exceptions import ConnectionClosed
 
-import sys
-from expedite.config import standard
 from expedite.client.conn import (
-    deliver_connection_to_server, 
-    collect_permission_to_join, 
-    deliver_suspension_from_expiry, 
+    collect_confirmation,
     collect_connection_from_pairness,
-    deliver_dropping_summon,
+    collect_contents,
+    collect_digest_checks,
     collect_dropping_summon,
     collect_metadata,
-    deliver_metadata,
-    collect_contents,
+    collect_permission_to_join,
+    collect_separation_from_mistaken_password,
+    deliver_confirmation,
+    deliver_connection_to_server,
     deliver_contents,
     deliver_digest_checks,
-    collect_digest_checks,
-    deliver_confirmation,
-    collect_confirmation,
+    deliver_dropping_summon,
+    deliver_metadata,
     deliver_separation_from_mistaken_password,
-    collect_separation_from_mistaken_password,
-    facade_exit
+    deliver_suspension_from_expiry,
+    facade_exit,
 )
-from json import loads
+from expedite.config import standard
 
 
 async def oper():
@@ -100,6 +101,6 @@ async def oper():
                         else:
                             await collect_contents(sock, mesgcont)
             sys.exit(standard.client_exit)
-    except ConnectionClosed as expt:
+    except ConnectionClosed:
         await facade_exit(sock, False, "dprt")
         sys.exit(standard.client_exit)

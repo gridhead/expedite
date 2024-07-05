@@ -16,20 +16,20 @@ You should have received a copy of the GNU General Public License along with
 this program.  If not, see <https://www.gnu.org/licenses/>.
 
 Any Red Hat trademarks that are incorporated in the codebase or documentation
-are not subject to the GNU Affero General Public License and may only be used
-or replicated with the express permission of Red Hat, Inc.
+are not subject to the GNU General Public License and may only be utilized or
+replicated with the express permission of Red Hat, Inc.
 """
 
 
 import os
 from json import dumps, loads
-from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
-from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives import padding
-from expedite.client.excp import PasswordMistaken
 
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import hashes, padding
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+
+from expedite.client.excp import PasswordMistaken
 from expedite.config import standard
 
 
@@ -54,7 +54,7 @@ def decr_bite(data: bytes = b"", code: bytes = standard.client_code, invc: bytes
         ucrdat = decrob.update(data) + decrob.finalize()
         return ucrper.update(ucrdat) + ucrper.finalize()
     except ValueError:
-        raise PasswordMistaken
+        raise PasswordMistaken from None
 
 
 def encr_metadata() -> bytes:

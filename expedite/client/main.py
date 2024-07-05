@@ -16,38 +16,36 @@ You should have received a copy of the GNU General Public License along with
 this program.  If not, see <https://www.gnu.org/licenses/>.
 
 Any Red Hat trademarks that are incorporated in the codebase or documentation
-are not subject to the GNU Affero General Public License and may only be used
-or replicated with the express permission of Red Hat, Inc.
+ are not subject to the GNU General Public License and may only be utilized or
+replicated with the express permission of Red Hat, Inc.
 """
 
 
 import sys
-
 from asyncio import run
 
-from expedite.client.room import oper
-
-from click import IntRange, option, version_option, group, Path
+from click import IntRange, Path, group, option, version_option
+from websockets.exceptions import InvalidURI
 
 from expedite import __versdata__
-from expedite.config import standard
+from expedite.client.base import bite_file, find_name, find_size
 from expedite.client.meet import talk
-from expedite.client.base import find_name, find_size, bite_file
+from expedite.client.room import oper
 from expedite.client.util import facade_exit
-from websockets.exceptions import InvalidURI
+from expedite.config import standard
 
 
 def work() -> None:
     talk()
     try:
         run(oper())
-    except OSError as expt:
+    except OSError:
         run(facade_exit(None, False, "oser"))
         sys.exit(standard.client_exit)
-    except InvalidURI as expt:
+    except InvalidURI:
         run(facade_exit(None, False, "iuri"))
         sys.exit(standard.client_exit)
-    except KeyboardInterrupt as expt:
+    except KeyboardInterrupt:
         run(facade_exit(None, False, "intr"))
         sys.exit(standard.client_exit)
 

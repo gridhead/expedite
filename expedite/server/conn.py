@@ -16,16 +16,18 @@ You should have received a copy of the GNU General Public License along with
 this program.  If not, see <https://www.gnu.org/licenses/>.
 
 Any Red Hat trademarks that are incorporated in the codebase or documentation
-are not subject to the GNU Affero General Public License and may only be used
-or replicated with the express permission of Red Hat, Inc.
+are not subject to the GNU General Public License and may only be utilized or
+replicated with the express permission of Red Hat, Inc.
 """
 
 
-from expedite.view import warning, success, failure, general
-from expedite.config import standard
-from uuid import uuid4
 from json import dumps
+from uuid import uuid4
+
 from websockets.legacy.server import WebSocketServerProtocol
+
+from expedite.config import standard
+from expedite.view import failure, general, success, warning
 
 
 async def exchange_insert(sock: WebSocketServerProtocol, plan: str = standard.client_plan, scan: str = standard.client_endo, time: int = standard.client_time) -> str | bool:

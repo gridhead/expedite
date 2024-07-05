@@ -16,24 +16,26 @@ You should have received a copy of the GNU General Public License along with
 this program.  If not, see <https://www.gnu.org/licenses/>.
 
 Any Red Hat trademarks that are incorporated in the codebase or documentation
-are not subject to the GNU Affero General Public License and may only be used
-or replicated with the express permission of Red Hat, Inc.
+are not subject to the GNU General Public License and may only be utilized or
+replicated with the express permission of Red Hat, Inc.
 """
 
 
 import asyncio
-from json import dumps
-from expedite.view import warning, general
-from expedite.config import standard
-from websockets.legacy.client import WebSocketClientProtocol
-from expedite.client.base import ease_size, read_file, fuse_file
-from hashlib import sha256
-from expedite.client.util import facade_exit
-from tqdm.contrib.logging import logging_redirect_tqdm
-from tqdm.asyncio import tqdm
 from datetime import datetime
-from expedite.client.auth import encr_metadata, decr_metadata
+from hashlib import sha256
+from json import dumps
+
+from tqdm.asyncio import tqdm
+from tqdm.contrib.logging import logging_redirect_tqdm
+from websockets.legacy.client import WebSocketClientProtocol
+
+from expedite.client.auth import decr_metadata, encr_metadata
+from expedite.client.base import ease_size, fuse_file, read_file
 from expedite.client.excp import PasswordMistaken
+from expedite.client.util import facade_exit
+from expedite.config import standard
+from expedite.view import general, warning
 
 
 async def deliver_connection_to_server(sock: WebSocketClientProtocol) -> bool:
@@ -48,7 +50,7 @@ async def deliver_connection_to_server(sock: WebSocketClientProtocol) -> bool:
 
 async def collect_permission_to_join(iden: str = standard.client_iden) -> bool:
     standard.client_iden = iden
-    general(f"Successfully connected to the network.")
+    general("Successfully connected to the network.")
     warning(f"You are now identified as {iden} in the network.")
     return True
 
@@ -66,21 +68,21 @@ async def collect_connection_from_pairness(iden: str = standard.client_endo) -> 
     standard.client_endo = iden
     standard.client_pair = True
     general(f"Attempting pairing with {standard.client_endo}.")
-    warning(f"Starting transmission.")
+    warning("Starting transmission.")
     return True
 
 
 async def collect_metadata(pack: bytes = b"") -> bool:
     try:
-        general(f"Generating cryptography sign.")
+        general("Generating cryptography sign.")
         standard.client_filename, standard.client_filesize, standard.client_chks = decr_metadata(pack)
         return True
-    except PasswordMistaken as expt:
+    except PasswordMistaken:
         return False
 
 
 async def deliver_metadata(sock: WebSocketClientProtocol) -> bool:
-    general(f"Generating cryptography sign.")
+    general("Generating cryptography sign.")
     await sock.send(encr_metadata())
     return True
 
@@ -114,7 +116,7 @@ async def collect_contents(sock: WebSocketClientProtocol, pack: bytes = b"") -> 
     fuse_file(pack)
     with logging_redirect_tqdm():
         with tqdm(total=standard.client_filesize, unit="B", unit_scale=True, unit_divisor=1024, leave=False, initial=len(pack)) as prog:
-            for indx in range(standard.client_chks - 1):
+            for _ in range(standard.client_chks - 1):
                 mesgcont = await sock.recv()
                 if isinstance(mesgcont, bytes):
                     fuse_file(mesgcont)
@@ -125,42 +127,42 @@ async def collect_contents(sock: WebSocketClientProtocol, pack: bytes = b"") -> 
 
 
 async def deliver_digest_checks(sock: WebSocketClientProtocol) -> bool:
-    general(f"Delivering contents digest for confirmation.")
+    general("Delivering contents digest for confirmation.")
     await sock.send(dumps({"call": "hash", "data": standard.client_hash.hexdigest()}))
     return True
 
 
 async def collect_digest_checks() -> bool:
-    general(f"Collecting contents digest for confirmation.")
+    general("Collecting contents digest for confirmation.")
     return True
 
 
 async def deliver_confirmation(sock: WebSocketClientProtocol, data: str = standard.client_hash.hexdigest()) -> bool:
     if data == standard.client_hash.hexdigest():
-        general(f"Contents integrity verified.")
+        general("Contents integrity verified.")
         await sock.send(dumps({"call": "conf", "data": 1}))
         return True
     else:
-        general(f"Contents integrity mismatch.")
+        general("Contents integrity mismatch.")
         await sock.send(dumps({"call": "conf", "data": 0}))
         return False
 
 
 async def collect_confirmation(data: int = 0) -> bool:
     if bool(data):
-        general(f"Contents integrity verified.")
+        general("Contents integrity verified.")
         return True
     else:
-        general(f"Contents integrity mismatch.")
+        general("Contents integrity mismatch.")
         return False
 
 
 async def deliver_separation_from_mistaken_password(sock: WebSocketClientProtocol) -> bool:
-    general(f"Delivering status update on mistaken password.")
+    general("Delivering status update on mistaken password.")
     await sock.send(dumps({"call": "flub"}))
     return True
 
 
 async def collect_separation_from_mistaken_password() -> bool:
-    general(f"Collecting status update on mistaken password.")
+    general("Collecting status update on mistaken password.")
     return True

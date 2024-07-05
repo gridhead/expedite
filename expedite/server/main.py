@@ -16,25 +16,22 @@ You should have received a copy of the GNU General Public License along with
 this program.  If not, see <https://www.gnu.org/licenses/>.
 
 Any Red Hat trademarks that are incorporated in the codebase or documentation
-are not subject to the GNU Affero General Public License and may only be used
-or replicated with the express permission of Red Hat, Inc.
+are not subject to the GNU General Public License and may only be utilized or
+replicated with the express permission of Red Hat, Inc.
 """
 
 
+import sys
 from asyncio import get_event_loop
 
-from expedite.server.room import oper
-
-from click import IntRange, option, version_option, command
+from click import IntRange, command, option, version_option
+from websockets import serve
 
 from expedite import __versdata__
 from expedite.config import standard
 from expedite.server.meet import talk
+from expedite.server.room import oper
 from expedite.view import failure
-
-import sys
-
-from websockets import serve
 
 
 def work():

@@ -16,14 +16,14 @@ You should have received a copy of the GNU General Public License along with
 this program.  If not, see <https://www.gnu.org/licenses/>.
 
 Any Red Hat trademarks that are incorporated in the codebase or documentation
-are not subject to the GNU Affero General Public License and may only be used
-or replicated with the express permission of Red Hat, Inc.
+are not subject to the GNU General Public License and may only be utilized or
+replicated with the express permission of Red Hat, Inc.
 """
 
 
-from expedite.view import success, general, warning
-from expedite.config import standard
 from expedite import __versdata__
+from expedite.config import standard
+from expedite.view import general, success, warning
 
 
 def talk() -> None:
@@ -31,9 +31,9 @@ def talk() -> None:
     general(f"Addr. {standard.client_addr}")
     general(f"Pass. {standard.client_pswd}")
     if standard.client_plan == "SEND":
-        general(f"Plan. DELIVERING")
+        general("Plan. DELIVERING")
     elif standard.client_plan == "RECV":
-        general(f"Plan. COLLECTING")
+        general("Plan. COLLECTING")
     general(f"Wait. {standard.client_time} seconds")
     if standard.client_endo == "":
         warning("Please share your acquired identity to begin interaction.")
