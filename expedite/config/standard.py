@@ -38,7 +38,7 @@ server_note = {
     "flub": "{sj} has received mistaken password from {oj}.",
 }
 
-client_addr = ""
+client_host = ""
 client_time = 15
 client_pswd = uuid4().hex[0:8].upper()
 client_plan = ""
@@ -62,8 +62,7 @@ client_invc = b""
 client_code = b""
 client_metadone = False
 
-chunking_size_kilobyte = 256
-chunking_size = 1024 * chunking_size_kilobyte
+chunking_size = 1024 * 64
 
 connection_dict = dict()
 connection_list = set()

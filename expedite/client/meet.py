@@ -28,7 +28,7 @@ from expedite.view import general, success, warning
 
 def talk() -> None:
     success(f"Expedite Client v{__versdata__}")
-    general(f"Addr. {standard.client_addr}")
+    general(f"Addr. {standard.client_host}")
     general(f"Pass. {standard.client_pswd}")
     if standard.client_plan == "SEND":
         general("Plan. DELIVERING")

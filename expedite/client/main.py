@@ -55,11 +55,11 @@ def work() -> None:
     context_settings={"show_default": True},
 )
 @option(
-    "-a",
-    "--addr",
-    "addr",
+    "-h",
+    "--host",
+    "host",
     type=str,
-    default=standard.client_addr,
+    default=standard.client_host,
     required=True,
     help="Set the address for the service endpoint"
 )
@@ -85,11 +85,11 @@ def work() -> None:
     version=__versdata__, prog_name="Expedite Client by Akashdeep Dhar"
 )
 def main(
-    addr: str = standard.client_addr,
+    host: str = standard.client_host,
     time: int = standard.client_time,
     endo: str = standard.client_endo,
 ):
-    standard.client_addr = addr
+    standard.client_host = host
     standard.client_time = time
     standard.client_endo = endo
 
@@ -119,18 +119,18 @@ def main(
     "-s",
     "--size",
     "size",
-    type=IntRange(64, 768, clamp=True),
-    default=standard.chunking_size_kilobyte,
-    help="Set the unit size for file chunking (in KiB)",
+    type=IntRange(1024, 524288, clamp=True),
+    default=standard.chunking_size,
+    help="Set the unit size for file chunking (in B)",
 )
 def send(
     pswd: str = standard.client_pswd,
     file: str = standard.client_file,
-    size: str = standard.chunking_size_kilobyte,
+    size: int = standard.chunking_size,
 ) -> None:
     standard.client_pswd = pswd
     standard.client_file = file
-    standard.chunking_size = size * 1024
+    standard.chunking_size = size
     standard.client_filesize = find_size()
     standard.client_filename = find_name()
     standard.client_bind = bite_file()
