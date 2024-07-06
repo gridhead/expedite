@@ -52,7 +52,7 @@ from expedite.config import standard
 
 async def oper():
     try:
-        async with connect(standard.client_addr) as sock:
+        async with connect(standard.client_host) as sock:
             get_event_loop().call_later(standard.client_time, lambda: ensure_future(deliver_suspension_from_expiry(sock)))
             await deliver_connection_to_server(sock)
             async for mesgcont in sock:
