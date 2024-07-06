@@ -7,7 +7,7 @@ EXPOSE 6969
 ENV PYTHONBUFFERED=1
 
 RUN dnf install python3-pip --assumeyes && dnf clean all --assumeyes
-RUN pip3 install --upgrade expedite==0.1.0a3
+RUN pip3 install --upgrade expedite==0.1.0a4
 
 ENTRYPOINT ["ed-server"]
 CMD ["--addr", "0.0.0.0", "--port", "6969"]
