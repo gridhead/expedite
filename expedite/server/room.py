@@ -51,7 +51,7 @@ async def oper(sock):
                 elif mesgdict["call"] in ["meta", "drop", "hash", "conf", "flub"]:
                     await exchange_json(sock, mesgdict["call"], mesgcont)
                 elif mesgdict["call"] == "rest":
-                    failure(f"{standard.connection_dict[sock]["iden"]} has achieved expiry.")
+                    failure(f"{standard.connection_dict[sock].iden} has achieved expiry.")
                     await exchange_remove(sock)
             else:
                 await exchange_byte(sock, mesgcont)

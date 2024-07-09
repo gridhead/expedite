@@ -21,8 +21,13 @@ replicated with the express permission of Red Hat, Inc.
 """
 
 
+from websockets.legacy.server import WebSocketServerProtocol
+
+from expedite.config import standard
+
+
 class ExpediteConnection:
-    def __init__(self, iden, plan, scan, time) -> None:
+    def __init__(self, iden: str = standard.client_iden, plan: str = standard.client_plan, scan: str = standard.client_endo, time: int = standard.client_time) -> None:
         self.iden = iden
         self.plan = plan
         self.scan = scan if scan != "" else None
@@ -30,6 +35,6 @@ class ExpediteConnection:
         self.ptid = ""
         self.ptsc = None
 
-    def pair_connection(self, ptid, ptsc) -> None:
+    def pair_connection(self, ptid: str = standard.client_endo, ptsc: WebSocketServerProtocol = None) -> None:
         self.ptid = ptid
         self.ptsc = ptsc
