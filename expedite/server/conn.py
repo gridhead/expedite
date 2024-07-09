@@ -75,7 +75,7 @@ async def exchange_inform(sock: WebSocketServerProtocol, plan: str = standard.cl
                     await indx.send(dumps({"call": "note", "part": iden}))
                     await sock.send(dumps({"call": "note", "part": scan}))
                     standard.connection_dict[indx].pair_connection(iden, sock)
-                    standard.connection_dict[iden].pair_connection(scan, indx)
+                    standard.connection_dict[sock].pair_connection(scan, indx)
                     return 0
                 else:
                     failure(f"{iden} and {scan} are negatively paired.")
