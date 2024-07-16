@@ -57,10 +57,13 @@ client_filename = ""
 client_filesize = 0
 client_fileinit = False
 client_saltsize = 16
+client_movestrt = 0
+client_movestop = 0
 client_salt = b""
 client_invc = b""
 client_code = b""
 client_metadone = False
+client_progress = False
 
 chunking_size = 1024 * 64
 
