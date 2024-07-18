@@ -69,16 +69,18 @@ class Connection:
                             # If the purpose of the client is either DELIVERING or COLLECTING
                             if mesgdict["call"] == "okay":
                                 await collect_permission_to_join(mesgdict["iden"])
-                                await self.notify_connection(mesgdict["iden"])
+                                self.ui.head_rqst.setText("Please share your acquired identity to begin interaction")
+                                self.ui.head_iden.setText(f"<b>{mesgdict["iden"]}</b>")
                             elif mesgdict["call"] in ["awry", "lone"]:
-                                await self.record_facade_errors(mesgdict["call"])
                                 await self.sock.close()
+                                warning(standard.client_note[mesgdict["call"]])
                                 self.show_dialog(QMessageBox.Critical, standard.client_note[mesgdict["call"]])
                         if standard.client_plan == "SEND":
                             # If the purpose of the client is DELIVERING
                             if mesgdict["call"] == "note":
                                 await collect_connection_from_pairness(mesgdict["part"])
-                                await self.notify_pairness(mesgdict["part"])
+                                self.ui.head_rqst.setText(f"You are now paired with <b>{mesgdict["part"]}</b>")
+                                standard.client_endo = mesgdict["part"]
                                 await deliver_metadata(self.sock)
                             elif mesgdict["call"] == "conf":
                                 complete = await collect_confirmation(mesgdict["data"])
@@ -86,19 +88,20 @@ class Connection:
                                 self.show_dialog(QMessageBox.Information, "Contents integrity verified." if complete else "Contents integrity mismatch.")
                             elif mesgdict["call"] == "flub":
                                 await collect_separation_from_mistaken_password()
-                                await self.record_facade_errors(mesgdict["call"])
                                 await self.sock.close()
+                                warning(standard.client_note[mesgdict["call"]])
                                 self.show_dialog(QMessageBox.Critical, standard.client_note[mesgdict["call"]])
                             elif mesgdict["call"] == "drop":
                                 await collect_dropping_summon()
-                                await self.notify_dropping()
+                                self.ui.head_rqst.setText(f"File contents are requested by <b>{standard.client_endo}</b>")
                                 await self.deliver_contents()
                                 await deliver_digest_checks(self.sock)
                         else:
                             # If the purpose of the client is COLLECTING
                             if mesgdict["call"] == "note":
                                 await collect_connection_from_pairness(mesgdict["part"])
-                                await self.notify_pairness(mesgdict["part"])
+                                self.ui.head_rqst.setText(f"You are now paired with <b>{mesgdict["part"]}</b>")
+                                standard.client_endo = mesgdict["part"]
                             elif mesgdict["call"] == "hash":
                                 await collect_digest_checks()
                                 complete = await deliver_confirmation(self.sock, mesgdict["data"])
@@ -110,12 +113,13 @@ class Connection:
                             # If the purpose of the client is COLLECTING
                             if not standard.client_metadone:
                                 if await collect_metadata(mesgcont):
-                                    await self.notify_metadata()
+                                    self.ui.clct_head_file.setText(f"Collecting <b>{truncate_text(standard.client_filename, 28)}</b> ({ease_size(standard.client_filesize)})")
+                                    standard.client_filename = Path(standard.client_file) / Path(standard.client_filename)
                                     await deliver_dropping_summon(self.sock)
                                 else:
                                     await deliver_separation_from_mistaken_password(self.sock)
-                                    await self.record_facade_errors("flub")
                                     await self.sock.close()
+                                    warning(standard.client_note["flub"])
                                     self.show_dialog(QMessageBox.Critical, standard.client_note["flub"])
                             else:
                                 await self.collect_contents(mesgcont)
@@ -128,21 +132,6 @@ class Connection:
         self.normal_both_side()
         standard.client_progress = False
 
-    async def notify_connection(self, iden):
-        self.ui.head_rqst.setText("Please share your acquired identity to begin interaction")
-        self.ui.head_iden.setText(f"<b>{iden}</b>")
-
-    async def notify_pairness(self, iden):
-        self.ui.head_rqst.setText(f"You are now paired with <b>{iden}</b>")
-        standard.client_endo = iden
-
-    async def notify_dropping(self):
-        self.ui.head_rqst.setText(f"File contents are requested by <b>{standard.client_endo}</b>")
-
-    async def notify_metadata(self):
-        self.ui.clct_head_file.setText(f"Collecting <b>{truncate_text(standard.client_filename, 28)}</b> ({ease_size(standard.client_filesize)})")
-        standard.client_filename = Path(standard.client_file) / Path(standard.client_filename)
-
     async def deliver_contents(self):
         standard.client_movestrt = time.time()
         for indx in range(0, len(standard.client_bind) - 1):
@@ -153,7 +142,6 @@ class Connection:
             await self.sock.send(bite)
             await sleep(0)
         self.ui.progbarg.setValue(100)
-        return True
 
     async def collect_contents(self, pack):
         standard.client_movestrt = time.time()
@@ -167,15 +155,11 @@ class Connection:
                 self.ui.statarea.showMessage(f"[{standard.client_endo}] SHA256 {sha256(cont).hexdigest()[0:20]} ({ease_size(len(cont))})")
                 await sleep(0)
         self.ui.progbarg.setValue(100)
-        return True
-
-    async def record_facade_errors(self, call):
-        warning(standard.client_note[call])
 
     async def suspension_from_expiry(self):
         if not standard.client_pair:
             general("Attempting to abandon from the network after expiry.")
             await self.sock.send(dumps({"call": "rest"}))
-            await self.record_facade_errors("rest")
             await self.sock.close()
+            warning(standard.client_note["rest"])
             self.show_dialog(QMessageBox.Warning, standard.client_note["rest"])
