@@ -123,7 +123,7 @@ class MainWindow(QMainWindow, CollectingOperations, DeliveringOperations, Connec
         self.loop.run_forever()
 
     def show_dialog(self, icon, data):
-        dialog = QMessageBox()
+        dialog = QMessageBox(parent=self)
         dialog.setIcon(icon)
         dialog.setText(data)
         dialog.exec()
