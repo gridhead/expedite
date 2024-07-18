@@ -22,14 +22,13 @@ replicated with the express permission of Red Hat, Inc.
 
 
 from os.path import basename
-from expedite.bridge.base import show_location_dialog
-from expedite.config import standard
-from expedite.bridge.base import truncate_text
-
 from uuid import uuid4
 
+from expedite.bridge.base import show_location_dialog, truncate_text
+from expedite.config import standard
 
-class CollectingOperations():
+
+class CollectingOperations:
     def __init__(self):
         pass
 

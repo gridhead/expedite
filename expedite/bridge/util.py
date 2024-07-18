@@ -24,7 +24,7 @@ replicated with the express permission of Red Hat, Inc.
 from os.path import exists
 
 
-class ValidateFields():
+class ValidateFields:
     def __init__(self):
         self.okay_size = False
         self.okay_time = False
@@ -36,7 +36,7 @@ class ValidateFields():
         self.okay_size = True
         try:
             oper = int(size.strip())
-            if oper not in range(1024, 524288):
+            if oper not in range(1024, 524288 + 1):
                 self.okay_size = False
         except ValueError:
             self.okay_size = False
@@ -45,7 +45,7 @@ class ValidateFields():
         self.okay_time = True
         try:
             oper = int(time.strip())
-            if oper not in range(5, 300):
+            if oper not in range(5, 300 + 1):
                 self.okay_time = False
         except ValueError:
             self.okay_time = False

@@ -39,7 +39,7 @@ server_note = {
 }
 
 client_host = ""
-client_time = 15
+client_time = 150
 client_pswd = uuid4().hex[0:8].upper()
 client_plan = ""
 client_endo = ""

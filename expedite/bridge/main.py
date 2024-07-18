@@ -21,24 +21,25 @@ replicated with the express permission of Red Hat, Inc.
 """
 
 
-from asyncio import ensure_future, new_event_loop, set_event_loop
 import sys
-from PySide6.QtWidgets import QApplication, QMainWindow, QMessageBox
-from PySide6.QtCore import QTimer
-from expedite.bridge.wind import Ui_mainwind
-from expedite.bridge.clct import CollectingOperations
-from expedite.bridge.dlvr import DeliveringOperations
-from expedite.bridge.conn import Connection
-from expedite.config import standard
-from expedite.client.base import bite_file
-from expedite.bridge.util import ValidateFields
+from asyncio import ensure_future, new_event_loop, set_event_loop
 from os.path import basename
-from expedite.client.base import find_size
+
+from PySide6.QtCore import QTimer
+from PySide6.QtWidgets import QApplication, QMainWindow, QMessageBox
+
+from expedite.bridge.clct import CollectingOperations
+from expedite.bridge.conn import Connection
+from expedite.bridge.dlvr import DeliveringOperations
+from expedite.bridge.util import ValidateFields
+from expedite.bridge.wind import Ui_mainwind
+from expedite.client.base import bite_file, find_size
+from expedite.config import standard
 
 
 class MainWindow(QMainWindow, CollectingOperations, DeliveringOperations, Connection):
     def __init__(self):
-        super(MainWindow, self).__init__()
+        super().__init__()
         self.loop = new_event_loop()
         set_event_loop(self.loop)
         self.ui = Ui_mainwind()

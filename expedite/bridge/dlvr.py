@@ -21,16 +21,15 @@ replicated with the express permission of Red Hat, Inc.
 """
 
 
-from expedite.bridge.base import show_location_dialog
-from expedite.client.base import ease_size
-from expedite.config import standard
-from expedite.bridge.base import truncate_text
 from os.path import basename, getsize
-
 from uuid import uuid4
 
+from expedite.bridge.base import show_location_dialog, truncate_text
+from expedite.client.base import ease_size
+from expedite.config import standard
 
-class DeliveringOperations():
+
+class DeliveringOperations:
     def __init__(self):
         pass
 

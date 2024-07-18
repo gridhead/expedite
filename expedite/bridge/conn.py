@@ -21,39 +21,38 @@ replicated with the express permission of Red Hat, Inc.
 """
 
 
-from asyncio import sleep, get_event_loop, ensure_future
 import time
+from asyncio import ensure_future, get_event_loop, sleep
+from hashlib import sha256
+from json import dumps, loads
+from pathlib import Path
 
+from PySide6.QtWidgets import QMessageBox
 from websockets import connect
 from websockets.exceptions import ConnectionClosed, InvalidURI
-from PySide6.QtWidgets import QMessageBox
-from expedite.config import standard
-from expedite.client.conn import (
-    deliver_connection_to_server,
-    deliver_metadata,
-    collect_metadata,
-    deliver_dropping_summon,
-    deliver_digest_checks,
-    collect_digest_checks,
-    collect_confirmation,
-    deliver_confirmation,
-    collect_permission_to_join,
-    collect_connection_from_pairness,
-    collect_dropping_summon,
-    deliver_separation_from_mistaken_password,
-    collect_separation_from_mistaken_password,
-)
-from expedite.client.base import ease_size, read_file, fuse_file
-from json import loads
-from pathlib import Path
-from hashlib import sha256
-from expedite.view import warning
+
 from expedite.bridge.base import truncate_text
-from expedite.view import general
-from json import dumps
+from expedite.client.base import ease_size, fuse_file, read_file
+from expedite.client.conn import (
+    collect_confirmation,
+    collect_connection_from_pairness,
+    collect_digest_checks,
+    collect_dropping_summon,
+    collect_metadata,
+    collect_permission_to_join,
+    collect_separation_from_mistaken_password,
+    deliver_confirmation,
+    deliver_connection_to_server,
+    deliver_digest_checks,
+    deliver_dropping_summon,
+    deliver_metadata,
+    deliver_separation_from_mistaken_password,
+)
+from expedite.config import standard
+from expedite.view import general, warning
 
 
-class Connection():
+class Connection:
     def __init__(self):
         self.sock = None
 
@@ -65,7 +64,9 @@ class Connection():
                 async for mesgcont in self.sock:
                     if isinstance(mesgcont, str):
                         mesgdict = loads(mesgcont)
+                        # If the data received is of STRING type
                         if standard.client_plan in ["SEND", "RECV"]:
+                            # If the purpose of the client is either DELIVERING or COLLECTING
                             if mesgdict["call"] == "okay":
                                 await collect_permission_to_join(mesgdict["iden"])
                                 await self.notify_connection(mesgdict["iden"])
@@ -74,6 +75,7 @@ class Connection():
                                 await self.sock.close()
                                 self.show_dialog(QMessageBox.Critical, standard.client_note[mesgdict["call"]])
                         if standard.client_plan == "SEND":
+                            # If the purpose of the client is DELIVERING
                             if mesgdict["call"] == "note":
                                 await collect_connection_from_pairness(mesgdict["part"])
                                 await self.notify_pairness(mesgdict["part"])
@@ -93,6 +95,7 @@ class Connection():
                                 await self.deliver_contents()
                                 await deliver_digest_checks(self.sock)
                         else:
+                            # If the purpose of the client is COLLECTING
                             if mesgdict["call"] == "note":
                                 await collect_connection_from_pairness(mesgdict["part"])
                                 await self.notify_pairness(mesgdict["part"])
@@ -102,7 +105,9 @@ class Connection():
                                 await self.sock.close()
                                 self.show_dialog(QMessageBox.Information, "Contents integrity verified." if complete else "Contents integrity mismatch.")
                     else:
+                        # If the data received is of BYTES type
                         if standard.client_plan == "RECV":
+                            # If the purpose of the client is COLLECTING
                             if not standard.client_metadone:
                                 if await collect_metadata(mesgcont):
                                     await self.notify_metadata()
