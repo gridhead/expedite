@@ -79,9 +79,9 @@ class MainWindow(QMainWindow, CollectingOperations, DeliveringOperations, Connec
                 standard.client_bind = bite_file()
                 self.initialize_connection()
             else:
-                self.show_dialog(QMessageBox.Warning, f"Please correct the filled data\n\n{report[1]}")
+                self.show_dialog(QMessageBox.Warning, "Invalid information", f"Please correct the filled data\n\n{report[1]}")
         else:
-            self.show_dialog(QMessageBox.Warning, "<b>Action in progress</b><br/>Please wait for the current action to complete first")
+            self.show_dialog(QMessageBox.Warning, "Ongoing interaction", "Please wait for the ongoing interaction to complete first before starting another or considering cancelling the interaction.")
 
     def incept_collecting_client(self):
         if not standard.client_progress:
@@ -100,9 +100,9 @@ class MainWindow(QMainWindow, CollectingOperations, DeliveringOperations, Connec
                 standard.client_metadone = False
                 self.initialize_connection()
             else:
-                self.show_dialog(QMessageBox.Warning, f"Please correct the filled data\n\n{report[1]}")
+                self.show_dialog(QMessageBox.Warning, "Invalid information", f"Please correct the filled data\n\n{report[1]}")
         else:
-            self.show_dialog(QMessageBox.Warning, "<b>Action in progress</b><br/>Please wait for the current action to complete first")
+            self.show_dialog(QMessageBox.Warning, "Ongoing interaction", "Please wait for the ongoing interaction to complete first before starting another or considering cancelling the interaction.")
 
     def initialize_connection(self):
         standard.client_host = self.ui.sockaddr.text()
@@ -122,9 +122,10 @@ class MainWindow(QMainWindow, CollectingOperations, DeliveringOperations, Connec
         self.loop.call_soon(self.loop.stop)
         self.loop.run_forever()
 
-    def show_dialog(self, icon, data):
+    def show_dialog(self, icon, head, data):
         dialog = QMessageBox(parent=self)
         dialog.setIcon(icon)
+        dialog.setWindowTitle(f"Expedite - {head}")
         dialog.setText(data)
         dialog.exec()
 

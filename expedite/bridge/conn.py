@@ -74,7 +74,7 @@ class Connection:
                             elif mesgdict["call"] in ["awry", "lone"]:
                                 await self.sock.close()
                                 warning(standard.client_note[mesgdict["call"]])
-                                self.show_dialog(QMessageBox.Critical, standard.client_note[mesgdict["call"]])
+                                self.show_dialog(QMessageBox.Critical, standard.client_note[mesgdict["call"]], standard.client_text[mesgdict["call"]])
                         if standard.client_plan == "SEND":
                             # If the purpose of the client is DELIVERING
                             if mesgdict["call"] == "note":
@@ -85,12 +85,33 @@ class Connection:
                             elif mesgdict["call"] == "conf":
                                 complete = await collect_confirmation(mesgdict["data"])
                                 await self.sock.close()
-                                self.show_dialog(QMessageBox.Information, "Contents integrity verified." if complete else "Contents integrity mismatch.")
+                                standard.client_movestop = time.time()
+                                head = standard.client_note["succ"] if complete else standard.client_note["fail"]
+                                text = standard.client_text["succ"] if complete else standard.client_text["fail"]
+                                self.show_dialog(
+                                    QMessageBox.Information,
+                                    head,
+                                    text.format(
+                                        iden=standard.client_iden,
+                                        verb="deliver",
+                                        drct="to",
+                                        endo=standard.client_endo,
+                                        name=standard.client_filename,
+                                        size=ease_size(standard.client_filesize),
+                                        hash=standard.client_hash.hexdigest(),
+                                        time=f"{(standard.client_movestop - standard.client_movestrt):.2f} seconds",
+                                        spid=f"{ease_size(0)}/s",
+                                    )
+                                )
                             elif mesgdict["call"] == "flub":
                                 await collect_separation_from_mistaken_password()
                                 await self.sock.close()
                                 warning(standard.client_note[mesgdict["call"]])
-                                self.show_dialog(QMessageBox.Critical, standard.client_note[mesgdict["call"]])
+                                self.show_dialog(
+                                    QMessageBox.Critical,
+                                    standard.client_note[mesgdict["call"]],
+                                    standard.client_text[mesgdict["call"]]
+                                )
                             elif mesgdict["call"] == "drop":
                                 await collect_dropping_summon()
                                 self.ui.head_rqst.setText(f"File contents are requested by <b>{standard.client_endo}</b>")
@@ -106,7 +127,24 @@ class Connection:
                                 await collect_digest_checks()
                                 complete = await deliver_confirmation(self.sock, mesgdict["data"])
                                 await self.sock.close()
-                                self.show_dialog(QMessageBox.Information, "Contents integrity verified." if complete else "Contents integrity mismatch.")
+                                standard.client_movestop = time.time()
+                                head = standard.client_note["succ"] if complete else standard.client_note["fail"]
+                                text = standard.client_text["succ"] if complete else standard.client_text["fail"]
+                                self.show_dialog(
+                                    QMessageBox.Information,
+                                    head,
+                                    text.format(
+                                        iden=standard.client_iden,
+                                        verb="collect",
+                                        drct="from",
+                                        endo=standard.client_endo,
+                                        name=standard.client_filename,
+                                        size=ease_size(standard.client_filesize),
+                                        hash=standard.client_hash.hexdigest(),
+                                        time=f"{(standard.client_movestop - standard.client_movestrt):.2f} seconds",
+                                        spid=f"{ease_size(0)}/s",
+                                    )
+                                )
                     else:
                         # If the data received is of BYTES type
                         if standard.client_plan == "RECV":
@@ -120,15 +158,15 @@ class Connection:
                                     await deliver_separation_from_mistaken_password(self.sock)
                                     await self.sock.close()
                                     warning(standard.client_note["flub"])
-                                    self.show_dialog(QMessageBox.Critical, standard.client_note["flub"])
+                                    self.show_dialog(QMessageBox.Critical, standard.client_note["flub"], standard.client_text["flub"])
                             else:
                                 await self.collect_contents(mesgcont)
         except InvalidURI:
-            self.show_dialog(QMessageBox.Critical, "<b>Invalid broker URI provided</b><br/>Please try again after revising the broker URI")
+            self.show_dialog(QMessageBox.Critical, standard.client_note["iuri"], standard.client_text["iuri"])
         except OSError:
-            self.show_dialog(QMessageBox.Critical, "<b>Invalid broker URI provided</b><br/>Please ensure that the service is operational")
+            self.show_dialog(QMessageBox.Critical, standard.client_note["oser"], standard.client_text["oser"])
         except ConnectionClosed:
-            self.show_dialog(QMessageBox.Critical, standard.client_note["dprt"])
+            self.show_dialog(QMessageBox.Critical, standard.client_note["dprt"], standard.client_text["dprt"])
         self.normal_both_side()
         standard.client_progress = False
 
@@ -138,7 +176,7 @@ class Connection:
             bite = read_file(standard.client_bind[indx], standard.client_bind[indx + 1])
             self.ui.head_rqst.setText(f"Delivering file contents since {int(time.time() - standard.client_movestrt)} seconds")
             self.ui.progbarg.setValue(indx * 100 / (len(standard.client_bind) - 1))
-            self.ui.statarea.showMessage(f"[{standard.client_endo}] SHA256 {sha256(bite).hexdigest()[0:20]} ({ease_size(len(bite))})")
+            self.ui.statarea.showMessage(f"[{standard.client_endo}] SHA256 {sha256(bite).hexdigest()[0:24]} ({ease_size(len(bite))})")
             await self.sock.send(bite)
             await sleep(0)
         self.ui.progbarg.setValue(100)
@@ -152,7 +190,7 @@ class Connection:
                 fuse_file(cont)
                 self.ui.head_rqst.setText(f"Collecting file contents since {int(time.time() - standard.client_movestrt)} seconds")
                 self.ui.progbarg.setValue(indx * 100 / (standard.client_chks))
-                self.ui.statarea.showMessage(f"[{standard.client_endo}] SHA256 {sha256(cont).hexdigest()[0:20]} ({ease_size(len(cont))})")
+                self.ui.statarea.showMessage(f"[{standard.client_endo}] SHA256 {sha256(cont).hexdigest()[0:24]} ({ease_size(len(cont))})")
                 await sleep(0)
         self.ui.progbarg.setValue(100)
 
@@ -162,4 +200,4 @@ class Connection:
             await self.sock.send(dumps({"call": "rest"}))
             await self.sock.close()
             warning(standard.client_note["rest"])
-            self.show_dialog(QMessageBox.Warning, standard.client_note["rest"])
+            self.show_dialog(QMessageBox.Warning, standard.client_note["rest"], standard.client_text["rest"])
