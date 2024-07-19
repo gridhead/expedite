@@ -22,6 +22,7 @@ replicated with the express permission of Red Hat, Inc.
 
 
 from os.path import basename, exists, getsize
+from typing import Union
 
 from expedite.client.auth import decr_bite, encr_bite
 from expedite.config import standard
@@ -35,15 +36,15 @@ def find_name() -> str:
     return basename(standard.client_file)
 
 
-def ease_size(size: int) -> str:
+def ease_size(size: Union[int, float]) -> str:
     unitlist = ["B", "KB", "MB", "GB", "TB", "PB"]
     indx, opsz = 0, size
     if size == 0:
-        return "0 B"
+        return "0.00B"
     else:
         while opsz >= 1024 and indx < len(unitlist) - 1:
             opsz, indx = opsz / 1024.0, indx + 1
-        return f"{opsz:.2f} {unitlist[indx]}"
+        return f"{opsz:.2f}{unitlist[indx]}"
 
 
 def bite_file() -> list:

@@ -22,6 +22,7 @@ replicated with the express permission of Red Hat, Inc.
 
 
 import asyncio
+import time
 from datetime import datetime
 from hashlib import sha256
 from json import dumps
@@ -100,6 +101,7 @@ async def collect_dropping_summon() -> bool:
 
 async def deliver_contents(sock: WebSocketClientProtocol) -> bool:
     general(f"Delivering contents for '{standard.client_filename}' ({ease_size(standard.client_filesize)}) to {standard.client_endo}.")
+    standard.client_movestrt = time.time()
     with logging_redirect_tqdm():
         with tqdm(total=standard.client_filesize, unit="B", unit_scale=True, unit_divisor=1024, leave=False, initial=0) as prog:
             for indx in range(0, len(standard.client_bind) - 1):
@@ -108,11 +110,12 @@ async def deliver_contents(sock: WebSocketClientProtocol) -> bool:
                 prog.update(standard.client_bind[indx + 1] - standard.client_bind[indx])
                 await sock.send(bite)
                 await asyncio.sleep(0)
-        return True
+    return True
 
 
 async def collect_contents(sock: WebSocketClientProtocol, pack: bytes = b"") -> bool:
     general(f"Collecting contents for '{standard.client_filename}' ({ease_size(standard.client_filesize)}) from {standard.client_endo}.")
+    standard.client_movestrt = time.time()
     fuse_file(pack)
     with logging_redirect_tqdm():
         with tqdm(total=standard.client_filesize, unit="B", unit_scale=True, unit_divisor=1024, leave=False, initial=len(pack)) as prog:
@@ -138,22 +141,24 @@ async def collect_digest_checks() -> bool:
 
 
 async def deliver_confirmation(sock: WebSocketClientProtocol, data: str = standard.client_hash.hexdigest()) -> bool:
+    standard.client_movestop = time.time()
     if data == standard.client_hash.hexdigest():
-        general("Contents integrity verified.")
+        general(f"Contents integrity verified (Mean {ease_size(standard.client_filesize / (standard.client_movestop - standard.client_movestrt))}/s).")
         await sock.send(dumps({"call": "conf", "data": 1}))
         return True
     else:
-        general("Contents integrity mismatch.")
+        general(f"Contents integrity mismatch (Mean {ease_size(standard.client_filesize / (standard.client_movestop - standard.client_movestrt))}/s).")
         await sock.send(dumps({"call": "conf", "data": 0}))
         return False
 
 
 async def collect_confirmation(data: int = 0) -> bool:
+    standard.client_movestop = time.time()
     if bool(data):
-        general("Contents integrity verified.")
+        general(f"Contents integrity verified (Mean {ease_size(standard.client_filesize / (standard.client_movestop - standard.client_movestrt))}/s).")
         return True
     else:
-        general("Contents integrity mismatch.")
+        general(f"Contents integrity mismatch (Mean {ease_size(standard.client_filesize / (standard.client_movestop - standard.client_movestrt))}/s).")
         return False
 
 
