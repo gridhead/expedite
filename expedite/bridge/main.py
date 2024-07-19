@@ -21,13 +21,16 @@ replicated with the express permission of Red Hat, Inc.
 """
 
 
+import os
 import sys
 from asyncio import ensure_future, new_event_loop, set_event_loop
 from os.path import basename
 
 from PySide6.QtCore import QTimer
+from PySide6.QtGui import QFontDatabase
 from PySide6.QtWidgets import QApplication, QMainWindow, QMessageBox
 
+from expedite.bridge import data  # noqa
 from expedite.bridge.clct import CollectingOperations
 from expedite.bridge.conn import Connection
 from expedite.bridge.dlvr import DeliveringOperations
@@ -122,16 +125,31 @@ class MainWindow(QMainWindow, CollectingOperations, DeliveringOperations, Connec
         self.loop.call_soon(self.loop.stop)
         self.loop.run_forever()
 
-    def show_dialog(self, icon, head, data):
+    def show_dialog(self, icon, head, text):
         dialog = QMessageBox(parent=self)
         dialog.setIcon(icon)
         dialog.setWindowTitle(f"Expedite - {head}")
-        dialog.setText(data)
+        dialog.setText(text)
+        dialog.setFont("IBM Plex Sans")
         dialog.exec()
 
 
+def load_custom_font():
+    fontlist = [
+        ":rsrc/axis/sans-bold.ttf",
+        ":rsrc/axis/sans-rlar.ttf",
+        ":rsrc/axis/sans-bdit.ttf",
+        ":rsrc/axis/sans-rlit.ttf",
+    ]
+    for indx in fontlist:
+        QFontDatabase.addApplicationFont(indx)
+
+
 def main():
+    os.environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"
+    QApplication.setStyle("Fusion")
     app = QApplication(sys.argv)
+    load_custom_font()
     main_window = MainWindow()
     main_window.show()
     sys.exit(app.exec())
