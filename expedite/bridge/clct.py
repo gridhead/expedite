@@ -39,7 +39,7 @@ class CollectingOperations:
             self.ui.clct_head_file.setText(f"Saving to <b>{truncate_text(basename(path), 28)}</b>")
 
     def normal_collecting_side(self):
-        self.ui.clct_head_file.setText("No directory selected")
+        self.ui.clct_head_file.setText("No location selected")
         self.ui.clct_line_size.clear()
         self.ui.clct_line_time.setText(str(standard.client_time))
         self.ui.clct_line_file.clear()

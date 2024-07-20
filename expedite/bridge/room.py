@@ -69,8 +69,8 @@ class Connection:
                             # If the purpose of the client is either DELIVERING or COLLECTING
                             if mesgdict["call"] == "okay":
                                 await collect_permission_to_join(mesgdict["iden"])
-                                self.ui.head_rqst.setText("Please share your acquired identity to begin interaction")
-                                self.ui.head_iden.setText(f"<b>{mesgdict["iden"]}</b>")
+                                self.ui.statarea.showMessage("Please share your acquired identity to begin interaction")
+                                self.ui.identity.setText(f"{mesgdict["iden"]}")
                             elif mesgdict["call"] in ["awry", "lone"]:
                                 await self.sock.close()
                                 warning(standard.client_note[mesgdict["call"]])
@@ -79,7 +79,7 @@ class Connection:
                             # If the purpose of the client is DELIVERING
                             if mesgdict["call"] == "note":
                                 await collect_connection_from_pairness(mesgdict["part"])
-                                self.ui.head_rqst.setText(f"You are now paired with <b>{mesgdict["part"]}</b>")
+                                self.ui.statarea.showMessage(f"You are now paired with {mesgdict["part"]}")
                                 standard.client_endo = mesgdict["part"]
                                 await deliver_metadata(self.sock)
                             elif mesgdict["call"] == "conf":
@@ -114,14 +114,14 @@ class Connection:
                                 )
                             elif mesgdict["call"] == "drop":
                                 await collect_dropping_summon()
-                                self.ui.head_rqst.setText(f"File contents are requested by <b>{standard.client_endo}</b>")
+                                self.ui.statarea.showMessage(f"File contents are requested by {standard.client_endo}")
                                 await self.deliver_contents()
                                 await deliver_digest_checks(self.sock)
                         else:
                             # If the purpose of the client is COLLECTING
                             if mesgdict["call"] == "note":
                                 await collect_connection_from_pairness(mesgdict["part"])
-                                self.ui.head_rqst.setText(f"You are now paired with <b>{mesgdict["part"]}</b>")
+                                self.ui.statarea.showMessage(f"You are now paired with {mesgdict["part"]}")
                                 standard.client_endo = mesgdict["part"]
                             elif mesgdict["call"] == "hash":
                                 await collect_digest_checks()
@@ -174,9 +174,8 @@ class Connection:
         standard.client_movestrt = time.time()
         for indx in range(0, len(standard.client_bind) - 1):
             bite = read_file(standard.client_bind[indx], standard.client_bind[indx + 1])
-            self.ui.head_rqst.setText(f"Delivering file contents since {int(time.time() - standard.client_movestrt)} seconds")
             self.ui.progbarg.setValue(indx * 100 / (len(standard.client_bind) - 1))
-            self.ui.statarea.showMessage(f"[{standard.client_endo}] SHA256 {sha256(bite).hexdigest()[0:24]} ({ease_size(len(bite))})")
+            self.ui.statarea.showMessage(f"[{standard.client_endo}] Since {(time.time() - standard.client_movestrt):.2f} seconds | SHA256 {sha256(bite).hexdigest()[0:4]} ({ease_size(len(bite))})")
             await self.sock.send(bite)
             await sleep(0)
         self.ui.progbarg.setValue(100)
@@ -188,9 +187,8 @@ class Connection:
             cont = await self.sock.recv()
             if isinstance(cont, bytes):
                 fuse_file(cont)
-                self.ui.head_rqst.setText(f"Collecting file contents since {int(time.time() - standard.client_movestrt)} seconds")
                 self.ui.progbarg.setValue(indx * 100 / (standard.client_chks))
-                self.ui.statarea.showMessage(f"[{standard.client_endo}] SHA256 {sha256(cont).hexdigest()[0:24]} ({ease_size(len(cont))})")
+                self.ui.statarea.showMessage(f"[{standard.client_endo}] Since {(time.time() - standard.client_movestrt):.2f} seconds | SHA256 {sha256(cont).hexdigest()[0:4]} ({ease_size(len(cont))})")
                 await sleep(0)
         self.ui.progbarg.setValue(100)
 

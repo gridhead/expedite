@@ -40,7 +40,7 @@ class DeliveringOperations:
             self.ui.dlvr_head_file.setText(f"Delivering <b>{truncate_text(basename(path), 28)}</b> ({ease_size(getsize(path))})")
 
     def normal_delivering_side(self):
-        self.ui.dlvr_head_file.setText("No file selected")
+        self.ui.dlvr_head_file.setText("No location selected")
         self.ui.dlvr_line_size.setText(str(standard.chunking_size))
         self.ui.dlvr_line_time.setText(str(standard.client_time))
         self.ui.dlvr_line_file.clear()

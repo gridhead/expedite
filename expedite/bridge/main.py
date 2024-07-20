@@ -30,10 +30,11 @@ from PySide6.QtCore import QTimer
 from PySide6.QtGui import QFontDatabase
 from PySide6.QtWidgets import QApplication, QMainWindow, QMessageBox
 
+from expedite import __versdata__
 from expedite.bridge import data  # noqa
 from expedite.bridge.clct import CollectingOperations
-from expedite.bridge.conn import Connection
 from expedite.bridge.dlvr import DeliveringOperations
+from expedite.bridge.room import Connection
 from expedite.bridge.util import ValidateFields
 from expedite.bridge.wind import Ui_mainwind
 from expedite.client.base import bite_file, find_size
@@ -43,10 +44,12 @@ from expedite.config import standard
 class MainWindow(QMainWindow, CollectingOperations, DeliveringOperations, Connection):
     def __init__(self):
         super().__init__()
+        self.headtext = f"Expedite v{__versdata__}"
         self.loop = new_event_loop()
         set_event_loop(self.loop)
         self.ui = Ui_mainwind()
         self.ui.setupUi(self)
+        self.setWindowTitle(self.headtext)
         self.normal_both_side()
         self.ui.dlvr_butn_browse.clicked.connect(self.handle_delivering_location)
         self.ui.clct_butn_browse.clicked.connect(self.handle_collecting_location)
@@ -84,7 +87,7 @@ class MainWindow(QMainWindow, CollectingOperations, DeliveringOperations, Connec
             else:
                 self.show_dialog(QMessageBox.Warning, "Invalid information", f"Please correct the filled data\n\n{report[1]}")
         else:
-            self.show_dialog(QMessageBox.Warning, "Ongoing interaction", "Please wait for the ongoing interaction to complete first before starting another or considering cancelling the interaction.")
+            self.show_dialog(QMessageBox.Warning, "Ongoing interaction", "Please wait for the ongoing interaction to complete first before starting another or considering cancelling the ongoing interaction.")
 
     def incept_collecting_client(self):
         if not standard.client_progress:
@@ -105,19 +108,18 @@ class MainWindow(QMainWindow, CollectingOperations, DeliveringOperations, Connec
             else:
                 self.show_dialog(QMessageBox.Warning, "Invalid information", f"Please correct the filled data\n\n{report[1]}")
         else:
-            self.show_dialog(QMessageBox.Warning, "Ongoing interaction", "Please wait for the ongoing interaction to complete first before starting another or considering cancelling the interaction.")
+            self.show_dialog(QMessageBox.Warning, "Ongoing interaction", "Please wait for the ongoing interaction to complete first before starting another or considering cancelling the ongoing interaction.")
 
     def initialize_connection(self):
         standard.client_host = self.ui.sockaddr.text()
         standard.client_progress = True
-        self.ui.head_rqst.setText("Please wait while the client connects to the broker")
+        self.ui.statarea.showMessage("Please wait while the client connects to the broker")
         ensure_future(self.maintain_connection())
 
     def normal_both_side(self):
         self.normal_delivering_side()
         self.normal_collecting_side()
-        self.ui.head_rqst.setText("Please initialize the connection to acquire an identity")
-        self.ui.head_iden.setText("INACCESSIBLE")
+        self.ui.identity.clear()
         self.ui.progbarg.setValue(0)
         self.ui.statarea.showMessage("READY")
 
@@ -128,7 +130,7 @@ class MainWindow(QMainWindow, CollectingOperations, DeliveringOperations, Connec
     def show_dialog(self, icon, head, text):
         dialog = QMessageBox(parent=self)
         dialog.setIcon(icon)
-        dialog.setWindowTitle(f"Expedite - {head}")
+        dialog.setWindowTitle(f"{self.headtext} - {head}")
         dialog.setText(text)
         dialog.setFont("IBM Plex Sans")
         dialog.exec()
