@@ -23,117 +23,12 @@ replicated with the express permission of Red Hat, Inc.
 
 import os
 import sys
-from asyncio import ensure_future, new_event_loop, set_event_loop
-from os.path import basename
 
-from PySide6.QtCore import QTimer
 from PySide6.QtGui import QFontDatabase
-from PySide6.QtWidgets import QApplication, QMainWindow, QMessageBox
+from PySide6.QtWidgets import QApplication
 
-from expedite import __versdata__
 from expedite.bridge import data  # noqa
-from expedite.bridge.clct import CollectingOperations
-from expedite.bridge.dlvr import DeliveringOperations
-from expedite.bridge.room import Connection
-from expedite.bridge.util import ValidateFields
-from expedite.bridge.wind import Ui_mainwind
-from expedite.client.base import bite_file, find_size
-from expedite.config import standard
-
-
-class MainWindow(QMainWindow, CollectingOperations, DeliveringOperations, Connection):
-    def __init__(self):
-        super().__init__()
-        self.headtext = f"Expedite v{__versdata__}"
-        self.loop = new_event_loop()
-        set_event_loop(self.loop)
-        self.ui = Ui_mainwind()
-        self.ui.setupUi(self)
-        self.setWindowTitle(self.headtext)
-        self.normal_both_side()
-        self.ui.dlvr_butn_browse.clicked.connect(self.handle_delivering_location)
-        self.ui.clct_butn_browse.clicked.connect(self.handle_collecting_location)
-        self.ui.dlvr_butn_random.clicked.connect(self.random_delivering_password)
-        self.ui.clct_butn_random.clicked.connect(self.random_collecting_password)
-        self.ui.dlvr_butn_normal.clicked.connect(self.normal_delivering_side)
-        self.ui.clct_butn_normal.clicked.connect(self.normal_collecting_side)
-        self.ui.dlvr_butn_incept.clicked.connect(self.incept_delivering_client)
-        self.ui.clct_butn_incept.clicked.connect(self.incept_collecting_client)
-        self.ui.progbarg.setMinimum(0)
-        self.ui.progbarg.setMaximum(100)
-        self.timekeeper = QTimer()
-        self.timekeeper.timeout.connect(self.manage_events)
-        self.timekeeper.start(1)
-
-    def incept_delivering_client(self):
-        if not standard.client_progress:
-            report = ValidateFields().report_dlvr(
-                self.ui.dlvr_line_size.text(),
-                self.ui.dlvr_line_time.text(),
-                self.ui.dlvr_line_file.text(),
-                self.ui.dlvr_line_pswd.text()
-            )
-            if report[0] == (True, True, True, True):
-                standard.client_plan = "SEND"
-                standard.chunking_size = int(self.ui.dlvr_line_size.text())
-                standard.client_time = int(self.ui.dlvr_line_time.text())
-                standard.client_file = self.ui.dlvr_line_file.text()
-                standard.client_pswd = self.ui.dlvr_line_pswd.text()
-                standard.client_endo = self.ui.dlvr_line_endo.text()
-                standard.client_filename = basename(standard.client_file)
-                standard.client_filesize = find_size()
-                standard.client_bind = bite_file()
-                self.initialize_connection()
-            else:
-                self.show_dialog(QMessageBox.Warning, "Invalid information", f"Please correct the filled data\n\n{report[1]}")
-        else:
-            self.show_dialog(QMessageBox.Warning, "Ongoing interaction", "Please wait for the ongoing interaction to complete first before starting another or considering cancelling the ongoing interaction.")
-
-    def incept_collecting_client(self):
-        if not standard.client_progress:
-            report = ValidateFields().report_clct(
-                self.ui.clct_line_time.text(),
-                self.ui.clct_line_file.text(),
-                self.ui.clct_line_pswd.text()
-            )
-            if report[0] == (True, True, True):
-                standard.client_plan = "RECV"
-                standard.client_time = int(self.ui.clct_line_time.text())
-                standard.client_file = self.ui.clct_line_file.text()
-                standard.client_pswd = self.ui.clct_line_pswd.text()
-                standard.client_endo = self.ui.clct_line_endo.text()
-                standard.client_fileinit = False
-                standard.client_metadone = False
-                self.initialize_connection()
-            else:
-                self.show_dialog(QMessageBox.Warning, "Invalid information", f"Please correct the filled data\n\n{report[1]}")
-        else:
-            self.show_dialog(QMessageBox.Warning, "Ongoing interaction", "Please wait for the ongoing interaction to complete first before starting another or considering cancelling the ongoing interaction.")
-
-    def initialize_connection(self):
-        standard.client_host = self.ui.sockaddr.text()
-        standard.client_progress = True
-        self.ui.statarea.showMessage("Please wait while the client connects to the broker")
-        ensure_future(self.maintain_connection())
-
-    def normal_both_side(self):
-        self.normal_delivering_side()
-        self.normal_collecting_side()
-        self.ui.identity.clear()
-        self.ui.progbarg.setValue(0)
-        self.ui.statarea.showMessage("READY")
-
-    def manage_events(self):
-        self.loop.call_soon(self.loop.stop)
-        self.loop.run_forever()
-
-    def show_dialog(self, icon, head, text):
-        dialog = QMessageBox(parent=self)
-        dialog.setIcon(icon)
-        dialog.setWindowTitle(f"{self.headtext} - {head}")
-        dialog.setText(text)
-        dialog.setFont("IBM Plex Sans")
-        dialog.exec()
+from expedite.bridge.room import MainWindow
 
 
 def load_custom_font():
