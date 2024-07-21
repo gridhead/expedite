@@ -39,7 +39,7 @@ server_note = {
 }
 
 client_host = ""
-client_time = 15
+client_time = 150
 client_pswd = uuid4().hex[0:8].upper()
 client_plan = ""
 client_endo = ""
@@ -63,6 +63,7 @@ client_salt = b""
 client_invc = b""
 client_code = b""
 client_metadone = False
+client_progress = False
 
 chunking_size = 1024 * 64
 
@@ -80,6 +81,21 @@ client_note = {
     "iuri": "Mistaken URI.",
     "rest": "Expiry achieved.",
     "flub": "Mistaken password.",
+    "succ": "Operation complete.",
+    "fail": "Operation failed."
+}
+
+client_text = {
+    "awry": "Interaction cannot proceed further as the both clients have requested for the identical actions from each other. Please try again while ensuring that both clients have requested dissimilar actions this time.",
+    "lone": "Interaction cannot proceed further as the client that was requested to be connected to is already connected with a different client. Please try again while ensuring that the client is not already connected.",
+    "dprt": "Interaction cannot proceed further as the client has disconnected from the broker server. Please ensure that the interaction remains stable in your next attempt by requesting for a decreased processing size.",
+    "intr": "Interaction cannot proceed further as the client has been requested to cancel the ongoing task. Please initiate the interaction again using the interface if the interaction had been aborted unintentionally.",
+    "oser": "Interaction cannot proceed further as the client cannot connect reliably to the broker server using the provided broker server URI. Please try again after ensuring that the broker server is working properly.",
+    "iuri": "Interaction cannot proceed further as the client cannot connect reliably to the broker server using the provided broker server URI. Please try again to start interaction after revising the broker server URI.",
+    "rest": "Interaction cannot proceed further as the client has timed out waiting for pairing. Please consider increasing the expiry time for participants and requesting the other client to connect as soon as possible.",
+    "flub": "Interaction cannot proceed further as the client has been provided with a mistaken password. Please try again while confirming that the correct password is provided at both delivering and collecting clients.",
+    "succ": "Contents integrity verified.<br/><br/>The client <b>{iden}</b> has succeeded to {verb} file contents {drct} client <b>{endo}</b>.<br/><br/><b>File name.</b> {name}<br/><b>File size.</b> {size}<br/><b>SHA256 sum.</b> {hash}<br/><b>Duration.</b> {time}<br/><b>Mean speed.</b> {spid}",
+    "fail": "Contents integrity mismatch.<br/><br/>The client <b>{iden}</b> has failed to {verb} file contents {drct} client <b>{endo}</b>.<br/><br/><b>File name.</b> {name}<br/><b>File size.</b> {size}<br/><b>SHA256 sum.</b> {hash}<br/><b>Duration.</b> {time}<br/><b>Mean speed.</b> {spid}",
 }
 
 logrconf = {
