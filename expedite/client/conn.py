@@ -26,6 +26,7 @@ import time
 from datetime import datetime
 from hashlib import sha256
 from json import dumps
+from typing import Generator, Tuple
 
 from tqdm.asyncio import tqdm
 from tqdm.contrib.logging import logging_redirect_tqdm
@@ -99,33 +100,43 @@ async def collect_dropping_summon() -> bool:
     return True
 
 
-async def deliver_contents(sock: WebSocketClientProtocol) -> bool:
+async def deliver_contents(sock: WebSocketClientProtocol) -> Generator[Tuple[bytes, int], None, None]:
+    for indx in range(0, len(standard.client_bind) - 1):
+        bite = read_file(standard.client_bind[indx], standard.client_bind[indx + 1])
+        await sock.send(bite)
+        await asyncio.sleep(0)
+        yield sha256(bite).hexdigest(), len(bite)
+
+
+async def show_deliver_contents(sock: WebSocketClientProtocol) -> bool:
     general(f"Delivering contents for '{standard.client_filename}' ({ease_size(standard.client_filesize)}) to {standard.client_endo}.")
     standard.client_movestrt = time.time()
     with logging_redirect_tqdm():
         with tqdm(total=standard.client_filesize, unit="B", unit_scale=True, unit_divisor=1024, leave=False, initial=0) as prog:
-            for indx in range(0, len(standard.client_bind) - 1):
-                bite = read_file(standard.client_bind[indx], standard.client_bind[indx + 1])
-                prog.set_description(f"{datetime.now().strftime("[%Y-%m-%d %H:%M:%S]")} SHA256 {sha256(bite).hexdigest()}")
-                prog.update(standard.client_bind[indx + 1] - standard.client_bind[indx])
-                await sock.send(bite)
-                await asyncio.sleep(0)
+            async for dgst, size in deliver_contents(sock):
+                prog.set_description(f"{datetime.now().strftime("[%Y-%m-%d %H:%M:%S]")} SHA256 {dgst}")
+                prog.update(size)
     return True
 
 
-async def collect_contents(sock: WebSocketClientProtocol, pack: bytes = b"") -> bool:
+async def collect_contents(sock: WebSocketClientProtocol) -> Generator[Tuple[bytes, int], None, None]:
+    for _ in range(standard.client_chks - 1):
+        mesgcont = await sock.recv()
+        if isinstance(mesgcont, bytes):
+            fuse_file(mesgcont)
+            await asyncio.sleep(0)
+            yield sha256(mesgcont).hexdigest(), len(mesgcont) - 16
+
+
+async def show_collect_contents(sock: WebSocketClientProtocol, pack: bytes = b"") -> bool:
     general(f"Collecting contents for '{standard.client_filename}' ({ease_size(standard.client_filesize)}) from {standard.client_endo}.")
     standard.client_movestrt = time.time()
     fuse_file(pack)
     with logging_redirect_tqdm():
         with tqdm(total=standard.client_filesize, unit="B", unit_scale=True, unit_divisor=1024, leave=False, initial=len(pack)) as prog:
-            for _ in range(standard.client_chks - 1):
-                mesgcont = await sock.recv()
-                if isinstance(mesgcont, bytes):
-                    fuse_file(mesgcont)
-                    prog.set_description(f"{datetime.now().strftime("[%Y-%m-%d %H:%M:%S]")} SHA256 {sha256(mesgcont).hexdigest()}")
-                    prog.update(len(mesgcont) - 16)
-                    await asyncio.sleep(0)
+            async for dgst, size in collect_contents(sock):
+                prog.set_description(f"{datetime.now().strftime("[%Y-%m-%d %H:%M:%S]")} SHA256 {dgst}")
+                prog.update(size)
     return True
 
 

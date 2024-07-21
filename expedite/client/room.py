@@ -31,7 +31,6 @@ from websockets.exceptions import ConnectionClosed
 from expedite.client.conn import (
     collect_confirmation,
     collect_connection_from_pairness,
-    collect_contents,
     collect_digest_checks,
     collect_dropping_summon,
     collect_metadata,
@@ -39,13 +38,14 @@ from expedite.client.conn import (
     collect_separation_from_mistaken_password,
     deliver_confirmation,
     deliver_connection_to_server,
-    deliver_contents,
     deliver_digest_checks,
     deliver_dropping_summon,
     deliver_metadata,
     deliver_separation_from_mistaken_password,
     deliver_suspension_from_expiry,
     facade_exit,
+    show_collect_contents,
+    show_deliver_contents,
 )
 from expedite.config import standard
 
@@ -78,7 +78,7 @@ async def oper():
                             await facade_exit(sock, False, "flub")
                         elif mesgdict["call"] == "drop":
                             await collect_dropping_summon()
-                            await deliver_contents(sock)
+                            await show_deliver_contents(sock)
                             await deliver_digest_checks(sock)
                     else:
                         # If the purpose of the client is COLLECTING
@@ -99,7 +99,7 @@ async def oper():
                                 await deliver_separation_from_mistaken_password(sock)
                                 await facade_exit(sock, False, "flub")
                         else:
-                            await collect_contents(sock, mesgcont)
+                            await show_collect_contents(sock, mesgcont)
             sys.exit(standard.client_exit)
     except ConnectionClosed:
         await facade_exit(sock, False, "dprt")

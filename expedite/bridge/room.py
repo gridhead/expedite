@@ -22,8 +22,7 @@ replicated with the express permission of Red Hat, Inc.
 
 
 import time
-from asyncio import ensure_future, get_event_loop, new_event_loop, set_event_loop, sleep
-from hashlib import sha256
+from asyncio import ensure_future, get_event_loop, new_event_loop, set_event_loop
 from json import dumps, loads
 from os.path import basename, getsize
 from pathlib import Path
@@ -38,10 +37,11 @@ from expedite import __versdata__
 from expedite.bridge.base import return_detail_text, show_location_dialog, truncate_text
 from expedite.bridge.util import ValidateFields
 from expedite.bridge.wind import Ui_mainwind
-from expedite.client.base import bite_file, ease_size, find_size, fuse_file, read_file
+from expedite.client.base import bite_file, ease_size, find_size, fuse_file
 from expedite.client.conn import (
     collect_confirmation,
     collect_connection_from_pairness,
+    collect_contents,
     collect_digest_checks,
     collect_dropping_summon,
     collect_metadata,
@@ -49,6 +49,7 @@ from expedite.client.conn import (
     collect_separation_from_mistaken_password,
     deliver_confirmation,
     deliver_connection_to_server,
+    deliver_contents,
     deliver_digest_checks,
     deliver_dropping_summon,
     deliver_metadata,
@@ -245,7 +246,7 @@ class MainWindow(QMainWindow, Ui_mainwind):
                                         size=ease_size(standard.client_filesize),
                                         hash=standard.client_hash.hexdigest(),
                                         time=f"{(standard.client_movestop - standard.client_movestrt):.2f} seconds",
-                                        spid=f"{ease_size(0)}/s",
+                                        spid=f"{ease_size(standard.client_filesize / (standard.client_movestop - standard.client_movestrt))}/s",
                                     )
                                 )
                             elif mesgdict["call"] == "flub":
@@ -260,7 +261,7 @@ class MainWindow(QMainWindow, Ui_mainwind):
                             elif mesgdict["call"] == "drop":
                                 await collect_dropping_summon()
                                 self.statarea.showMessage(f"File contents are requested by {standard.client_endo}")
-                                await self.deliver_contents()
+                                await self.show_deliver_contents()
                                 await deliver_digest_checks(self.sock)
                         else:
                             # If the purpose of the client is COLLECTING
@@ -287,7 +288,7 @@ class MainWindow(QMainWindow, Ui_mainwind):
                                         size=ease_size(standard.client_filesize),
                                         hash=standard.client_hash.hexdigest(),
                                         time=f"{(standard.client_movestop - standard.client_movestrt):.2f} seconds",
-                                        spid=f"{ease_size(0)}/s",
+                                        spid=f"{ease_size(standard.client_filesize / (standard.client_movestop - standard.client_movestrt))}/s",
                                     )
                                 )
                     else:
@@ -305,7 +306,7 @@ class MainWindow(QMainWindow, Ui_mainwind):
                                     warning(standard.client_note["flub"])
                                     self.show_dialog(QMessageBox.Critical, standard.client_note["flub"], standard.client_text["flub"])
                             else:
-                                await self.collect_contents(mesgcont)
+                                await self.show_collect_contents(mesgcont)
         except InvalidURI:
             self.show_dialog(QMessageBox.Critical, standard.client_note["iuri"], standard.client_text["iuri"])
         except OSError:
@@ -315,26 +316,21 @@ class MainWindow(QMainWindow, Ui_mainwind):
         self.normal_both_side()
         standard.client_progress = False
 
-    async def deliver_contents(self):
-        standard.client_movestrt = time.time()
-        for indx in range(0, len(standard.client_bind) - 1):
-            bite = read_file(standard.client_bind[indx], standard.client_bind[indx + 1])
-            self.progbarg.setValue(indx * 100 / (len(standard.client_bind) - 1))
-            self.statarea.showMessage(f"[{standard.client_endo}] Since {(time.time() - standard.client_movestrt):.2f} seconds | SHA256 {sha256(bite).hexdigest()[0:4]} ({ease_size(len(bite))})")
-            await self.sock.send(bite)
-            await sleep(0)
+    async def show_deliver_contents(self):
+        standard.client_movestrt, progress = time.time(), 0
+        async for dgst, size in deliver_contents(self.sock):
+            self.statarea.showMessage(f"[{standard.client_endo}] Since {(time.time() - standard.client_movestrt):.2f} seconds | SHA256 {dgst[0:6]} ({ease_size(size)})")
+            progress += size * 100 / standard.client_filesize
+            self.progbarg.setValue(progress)
         self.progbarg.setValue(100)
 
-    async def collect_contents(self, pack):
-        standard.client_movestrt = time.time()
+    async def show_collect_contents(self, pack):
+        standard.client_movestrt, progress = time.time(), 0
         fuse_file(pack)
-        for indx in range(0, standard.client_chks - 1):
-            cont = await self.sock.recv()
-            if isinstance(cont, bytes):
-                fuse_file(cont)
-                self.progbarg.setValue(indx * 100 / (standard.client_chks))
-                self.statarea.showMessage(f"[{standard.client_endo}] Since {(time.time() - standard.client_movestrt):.2f} seconds | SHA256 {sha256(cont).hexdigest()[0:4]} ({ease_size(len(cont))})")
-                await sleep(0)
+        async for dgst, size in collect_contents(self.sock):
+            self.statarea.showMessage(f"[{standard.client_endo}] Since {(time.time() - standard.client_movestrt):.2f} seconds | SHA256 {dgst[0:6]} ({ease_size(size)})")
+            progress += size * 100 / standard.client_filesize
+            self.progbarg.setValue(progress)
         self.progbarg.setValue(100)
 
     async def suspension_from_expiry(self):
