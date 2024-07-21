@@ -35,7 +35,7 @@ from websockets import connect
 from websockets.exceptions import ConnectionClosed, InvalidURI
 
 from expedite import __versdata__
-from expedite.bridge.base import show_location_dialog, truncate_text
+from expedite.bridge.base import return_detail_text, show_location_dialog, truncate_text
 from expedite.bridge.util import ValidateFields
 from expedite.bridge.wind import Ui_mainwind
 from expedite.client.base import bite_file, ease_size, find_size, fuse_file, read_file
@@ -76,6 +76,8 @@ class MainWindow(QMainWindow, Ui_mainwind):
         self.clct_butn_normal.clicked.connect(self.normal_collecting_side)
         self.dlvr_butn_incept.clicked.connect(self.incept_delivering_client)
         self.clct_butn_incept.clicked.connect(self.incept_collecting_client)
+        self.dlvr_butn_detail.clicked.connect(self.show_detail)
+        self.clct_butn_detail.clicked.connect(self.show_detail)
         self.progbarg.setMinimum(0)
         self.progbarg.setMaximum(100)
         self.timekeeper = QTimer()
@@ -93,6 +95,19 @@ class MainWindow(QMainWindow, Ui_mainwind):
         if path:
             self.clct_line_file.setText(path)
             self.clct_head_file.setText(f"Saving to <b>{truncate_text(basename(path), 28)}</b>")
+
+    def show_detail(self):
+        self.show_dialog(
+            QMessageBox.Information,
+            "Detail",
+            return_detail_text().format(
+                vers=__versdata__,
+                star="https://github.com/gridhead/expedite/stargazers",
+                tick="https://github.com/gridhead/expedite/issues",
+                pull="https://github.com/gridhead/expedite/pulls",
+                help="https://github.com/sponsors/gridhead",
+            )
+        )
 
     def normal_delivering_side(self):
         self.dlvr_head_file.setText("No location selected")
