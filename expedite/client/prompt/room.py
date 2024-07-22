@@ -22,15 +22,22 @@ replicated with the express permission of Red Hat, Inc.
 
 
 import sys
+import time
 from asyncio import ensure_future, get_event_loop
+from datetime import datetime
 from json import loads
 
+from tqdm.asyncio import tqdm
+from tqdm.contrib.logging import logging_redirect_tqdm
 from websockets import connect
 from websockets.exceptions import ConnectionClosed
+from websockets.legacy.client import WebSocketClientProtocol
 
+from expedite.client.base import ease_size, fuse_file
 from expedite.client.conn import (
     collect_confirmation,
     collect_connection_from_pairness,
+    collect_contents,
     collect_digest_checks,
     collect_dropping_summon,
     collect_metadata,
@@ -38,22 +45,21 @@ from expedite.client.conn import (
     collect_separation_from_mistaken_password,
     deliver_confirmation,
     deliver_connection_to_server,
+    deliver_contents,
     deliver_digest_checks,
     deliver_dropping_summon,
     deliver_metadata,
     deliver_separation_from_mistaken_password,
-    deliver_suspension_from_expiry,
-    facade_exit,
-    show_collect_contents,
-    show_deliver_contents,
 )
+from expedite.client.prompt.util import deliver_suspension_from_expiry_prompt, facade_exit
 from expedite.config import standard
+from expedite.view import general
 
 
 async def oper():
     try:
         async with connect(standard.client_host) as sock:
-            get_event_loop().call_later(standard.client_time, lambda: ensure_future(deliver_suspension_from_expiry(sock)))
+            get_event_loop().call_later(standard.client_time, lambda: ensure_future(deliver_suspension_from_expiry_prompt(sock)))
             await deliver_connection_to_server(sock)
             async for mesgcont in sock:
                 if isinstance(mesgcont, str):
@@ -104,3 +110,26 @@ async def oper():
     except ConnectionClosed:
         await facade_exit(sock, False, "dprt")
         sys.exit(standard.client_exit)
+
+
+async def show_deliver_contents(sock: WebSocketClientProtocol) -> bool:
+    general(f"Delivering contents for '{standard.client_filename}' ({ease_size(standard.client_filesize)}) to {standard.client_endo}.")
+    standard.client_movestrt = time.time()
+    with logging_redirect_tqdm():
+        with tqdm(total=standard.client_filesize, unit="B", unit_scale=True, unit_divisor=1024, leave=False, initial=0) as prog:
+            async for dgst, size in deliver_contents(sock):
+                prog.set_description(f"{datetime.now().strftime("[%Y-%m-%d %H:%M:%S]")} SHA256 {dgst}")
+                prog.update(size)
+    return True
+
+
+async def show_collect_contents(sock: WebSocketClientProtocol, pack: bytes = b"") -> bool:
+    general(f"Collecting contents for '{standard.client_filename}' ({ease_size(standard.client_filesize)}) from {standard.client_endo}.")
+    standard.client_movestrt = time.time()
+    fuse_file(pack)
+    with logging_redirect_tqdm():
+        with tqdm(total=standard.client_filesize, unit="B", unit_scale=True, unit_divisor=1024, leave=False, initial=len(pack)) as prog:
+            async for dgst, size in collect_contents(sock):
+                prog.set_description(f"{datetime.now().strftime("[%Y-%m-%d %H:%M:%S]")} SHA256 {dgst}")
+                prog.update(size)
+    return True

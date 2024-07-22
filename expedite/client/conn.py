@@ -23,19 +23,15 @@ replicated with the express permission of Red Hat, Inc.
 
 import asyncio
 import time
-from datetime import datetime
 from hashlib import sha256
 from json import dumps
 from typing import Generator, Tuple
 
-from tqdm.asyncio import tqdm
-from tqdm.contrib.logging import logging_redirect_tqdm
 from websockets.legacy.client import WebSocketClientProtocol
 
 from expedite.client.auth import decr_metadata, encr_metadata
 from expedite.client.base import ease_size, fuse_file, read_file
 from expedite.client.excp import PasswordMistaken
-from expedite.client.util import facade_exit
 from expedite.config import standard
 from expedite.view import general, warning
 
@@ -57,11 +53,11 @@ async def collect_permission_to_join(iden: str = standard.client_iden) -> bool:
     return True
 
 
-async def deliver_suspension_from_expiry(sock: WebSocketClientProtocol) -> None | bool:
+async def deliver_suspension_from_expiry(sock: WebSocketClientProtocol) -> bool:
     if not standard.client_pair:
         general("Attempting to abandon from the network after expiry.")
         await sock.send(dumps({"call": "rest"}))
-        await facade_exit(sock, False, "rest")
+        return True
     else:
         return False
 
@@ -108,17 +104,6 @@ async def deliver_contents(sock: WebSocketClientProtocol) -> Generator[Tuple[byt
         yield sha256(bite).hexdigest(), len(bite)
 
 
-async def show_deliver_contents(sock: WebSocketClientProtocol) -> bool:
-    general(f"Delivering contents for '{standard.client_filename}' ({ease_size(standard.client_filesize)}) to {standard.client_endo}.")
-    standard.client_movestrt = time.time()
-    with logging_redirect_tqdm():
-        with tqdm(total=standard.client_filesize, unit="B", unit_scale=True, unit_divisor=1024, leave=False, initial=0) as prog:
-            async for dgst, size in deliver_contents(sock):
-                prog.set_description(f"{datetime.now().strftime("[%Y-%m-%d %H:%M:%S]")} SHA256 {dgst}")
-                prog.update(size)
-    return True
-
-
 async def collect_contents(sock: WebSocketClientProtocol) -> Generator[Tuple[bytes, int], None, None]:
     for _ in range(standard.client_chks - 1):
         mesgcont = await sock.recv()
@@ -126,18 +111,6 @@ async def collect_contents(sock: WebSocketClientProtocol) -> Generator[Tuple[byt
             fuse_file(mesgcont)
             await asyncio.sleep(0)
             yield sha256(mesgcont).hexdigest(), len(mesgcont) - 16
-
-
-async def show_collect_contents(sock: WebSocketClientProtocol, pack: bytes = b"") -> bool:
-    general(f"Collecting contents for '{standard.client_filename}' ({ease_size(standard.client_filesize)}) from {standard.client_endo}.")
-    standard.client_movestrt = time.time()
-    fuse_file(pack)
-    with logging_redirect_tqdm():
-        with tqdm(total=standard.client_filesize, unit="B", unit_scale=True, unit_divisor=1024, leave=False, initial=len(pack)) as prog:
-            async for dgst, size in collect_contents(sock):
-                prog.set_description(f"{datetime.now().strftime("[%Y-%m-%d %H:%M:%S]")} SHA256 {dgst}")
-                prog.update(size)
-    return True
 
 
 async def deliver_digest_checks(sock: WebSocketClientProtocol) -> bool:

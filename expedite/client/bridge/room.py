@@ -23,7 +23,7 @@ replicated with the express permission of Red Hat, Inc.
 
 import time
 from asyncio import ensure_future, get_event_loop, new_event_loop, set_event_loop
-from json import dumps, loads
+from json import loads
 from os.path import basename, getsize
 from pathlib import Path
 from uuid import uuid4
@@ -34,10 +34,14 @@ from websockets import connect
 from websockets.exceptions import ConnectionClosed, InvalidURI
 
 from expedite import __versdata__
-from expedite.bridge.base import return_detail_text, show_location_dialog, truncate_text
-from expedite.bridge.util import ValidateFields
-from expedite.bridge.wind import Ui_mainwind
 from expedite.client.base import bite_file, ease_size, find_size, fuse_file
+from expedite.client.bridge.util import (
+    ValidateFields,
+    return_detail_text,
+    show_location_dialog,
+    truncate_text,
+)
+from expedite.client.bridge.wind import Ui_mainwind
 from expedite.client.conn import (
     collect_confirmation,
     collect_connection_from_pairness,
@@ -54,9 +58,11 @@ from expedite.client.conn import (
     deliver_dropping_summon,
     deliver_metadata,
     deliver_separation_from_mistaken_password,
+    deliver_suspension_from_expiry,
 )
+from expedite.client.meet import talk
 from expedite.config import standard
-from expedite.view import general, warning
+from expedite.view import warning
 
 
 class MainWindow(QMainWindow, Ui_mainwind):
@@ -181,6 +187,7 @@ class MainWindow(QMainWindow, Ui_mainwind):
         standard.client_host = self.sockaddr.text()
         standard.client_progress = True
         self.statarea.showMessage("Please wait while the client connects to the broker")
+        talk()
         ensure_future(self.maintain_connection())
 
     def normal_both_side(self):
@@ -205,7 +212,7 @@ class MainWindow(QMainWindow, Ui_mainwind):
     async def maintain_connection(self):
         try:
             async with connect(standard.client_host) as self.sock:
-                get_event_loop().call_later(standard.client_time, lambda: ensure_future(self.suspension_from_expiry()))
+                get_event_loop().call_later(standard.client_time, lambda: ensure_future(self.deliver_suspension_from_expiry_bridge()))
                 await deliver_connection_to_server(self.sock)
                 async for mesgcont in self.sock:
                     if isinstance(mesgcont, str):
@@ -333,10 +340,9 @@ class MainWindow(QMainWindow, Ui_mainwind):
             self.progbarg.setValue(progress)
         self.progbarg.setValue(100)
 
-    async def suspension_from_expiry(self):
+    async def deliver_suspension_from_expiry_bridge(self):
         if not standard.client_pair:
-            general("Attempting to abandon from the network after expiry.")
-            await self.sock.send(dumps({"call": "rest"}))
+            await deliver_suspension_from_expiry(self.sock)
             await self.sock.close()
             warning(standard.client_note["rest"])
             self.show_dialog(QMessageBox.Warning, standard.client_note["rest"], standard.client_text["rest"])

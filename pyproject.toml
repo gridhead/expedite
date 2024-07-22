@@ -52,5 +52,5 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
 ed-server = "expedite.server.main:main"
-ed-client = "expedite.client.main:main"
-ed-bridge = "expedite.bridge.main:main"
+ed-prompt = "expedite.client.prompt.main:main"
+ed-bridge = "expedite.client.bridge.main:main"

@@ -25,6 +25,7 @@ import time
 
 from websockets.legacy.client import WebSocketClientProtocol
 
+from expedite.client.conn import deliver_suspension_from_expiry
 from expedite.config import standard
 from expedite.view import failure, general, success, warning
 
@@ -42,3 +43,8 @@ async def facade_exit(sock: WebSocketClientProtocol = None, cond: bool = True, n
         failure(f"{plan} fail after {(time.time() - standard.client_strt):.2f} seconds.")
         standard.client_exit = 1
     general("Exiting.")
+
+
+async def deliver_suspension_from_expiry_prompt(sock: WebSocketClientProtocol):
+    if await deliver_suspension_from_expiry(sock):
+        await facade_exit(sock, False, "rest")
