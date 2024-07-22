@@ -24,7 +24,7 @@ replicated with the express permission of Red Hat, Inc.
 import os
 import sys
 
-from PySide6.QtGui import QFontDatabase
+from PySide6.QtGui import QFontDatabase, QIcon
 from PySide6.QtWidgets import QApplication
 
 from expedite.client.bridge import data  # noqa
@@ -33,10 +33,10 @@ from expedite.client.bridge.room import MainWindow
 
 def load_custom_font():
     fontlist = [
-        ":rsrc/axis/sans-bold.ttf",
-        ":rsrc/axis/sans-rlar.ttf",
-        ":rsrc/axis/sans-bdit.ttf",
-        ":rsrc/axis/sans-rlit.ttf",
+        ":font/font/sans-bold.ttf",
+        ":font/font/sans-rlar.ttf",
+        ":font/font/sans-bdit.ttf",
+        ":font/font/sans-rlit.ttf",
     ]
     for indx in fontlist:
         QFontDatabase.addApplicationFont(indx)
@@ -46,6 +46,7 @@ def main():
     os.environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"
     QApplication.setStyle("Fusion")
     app = QApplication(sys.argv)
+    app.setWindowIcon(QIcon(":icon/icon/expedite.ico"))
     load_custom_font()
     main_window = MainWindow()
     main_window.show()
