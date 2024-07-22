@@ -1,0 +1,11 @@
+<RCC>
+  <qresource prefix="font">
+    <file>font/sans-bdit.ttf</file>
+    <file>font/sans-bold.ttf</file>
+    <file>font/sans-rlar.ttf</file>
+    <file>font/sans-rlit.ttf</file>
+  </qresource>
+  <qresource prefix="icon">
+    <file>icon/expedite.ico</file>
+  </qresource>
+</RCC>
