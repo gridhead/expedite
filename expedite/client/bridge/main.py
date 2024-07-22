@@ -27,8 +27,8 @@ import sys
 from PySide6.QtGui import QFontDatabase
 from PySide6.QtWidgets import QApplication
 
-from expedite.bridge import data  # noqa
-from expedite.bridge.room import MainWindow
+from expedite.client.bridge import data  # noqa
+from expedite.client.bridge.room import MainWindow
 
 
 def load_custom_font():

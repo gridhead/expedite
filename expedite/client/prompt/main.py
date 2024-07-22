@@ -30,8 +30,8 @@ from websockets.exceptions import InvalidURI
 from expedite import __versdata__
 from expedite.client.base import bite_file, find_name, find_size
 from expedite.client.meet import talk
-from expedite.client.room import oper
-from expedite.client.util import facade_exit
+from expedite.client.prompt.room import oper
+from expedite.client.prompt.util import facade_exit
 from expedite.config import standard
 
 
