@@ -33,13 +33,21 @@ transfer. Please open up a pull request if you wish to list your server here.
 
 ## Screenshots
 
-### Client - Delivering
+### Client - Prompt - Delivering
 
-![](https://raw.githubusercontent.com/gridhead/expedite/main/data/send.gif)
+![](https://raw.githubusercontent.com/gridhead/expedite/main/data/prompt-send.gif)
 
-### Client - Collecting
+### Client - Prompt - Collecting
 
-![](https://raw.githubusercontent.com/gridhead/expedite/main/data/recv.gif)
+![](https://raw.githubusercontent.com/gridhead/expedite/main/data/prompt-recv.gif)
+
+### Client - Bridge - Delivering
+
+![](https://raw.githubusercontent.com/gridhead/expedite/main/data/bridge-send.gif)
+
+### Client - Bridge - Collecting
+
+![](https://raw.githubusercontent.com/gridhead/expedite/main/data/bridge-recv.gif)
 
 ### Server - Broker
 
@@ -76,6 +84,8 @@ transfer. Please open up a pull request if you wish to list your server here.
 
 ### For consumption
 
+#### From PyPI
+
 1.  Ensure that the required tools and dependencies are installed.
     ```
     $ sudo dnf install python3 python3-virtualenv python3-pip
@@ -91,6 +101,25 @@ transfer. Please open up a pull request if you wish to list your server here.
 4.  Install the project codebase from Python Package Index.
     ```
     (venv) $ pip3 install expedite
+    ```
+
+#### From GitHub
+
+1.  Visit the **GitHub Actions** page of the project repository.
+    ```
+    https://github.com/gridhead/expedite/actions
+    ```
+2.  To get automated builds for **GNU/Linux distributions**, visit the following page.
+    ```
+    https://github.com/gridhead/expedite/actions/workflows/gnul.yml
+    ```
+3.  To get automated builds for **Microsoft Windows**, visit the following page.
+    ```
+    https://github.com/gridhead/expedite/actions/workflows/mswn.yml
+    ```
+4.  Please request for the builds if they are unavailable in the recent workflow runs.
+    ```
+    https://github.com/gridhead/expedite/issues
     ```
 
 ## Execution
