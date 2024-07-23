@@ -1,5 +1,7 @@
 # Expedite
 
+Simple encrypted file transfer service
+
 ## Introduction
 
 Expedite is a simple encrypted file transfer service that allows for people to 
@@ -31,27 +33,59 @@ transfer. Please open up a pull request if you wish to list your server here.
 - Atlanta, GA - `ws://expedite-atla.apexaltruism.net:6969`
 - Mumbai, MH - `ws://expedite-mumb.apexaltruism.net:6969`
 
-## Screenshots
+## Illustration
 
-### Client - Prompt - Delivering
+### Client - Bridge - Info
 
-![](https://raw.githubusercontent.com/gridhead/expedite/main/data/prompt-send.gif)
+![](https://raw.githubusercontent.com/gridhead/expedite/main/data/bridge-info-stat.png)
 
-### Client - Prompt - Collecting
+### Client - Bridge - Delivering - Static
 
-![](https://raw.githubusercontent.com/gridhead/expedite/main/data/prompt-recv.gif)
+![](https://raw.githubusercontent.com/gridhead/expedite/main/data/bridge-send-stat.png)
 
-### Client - Bridge - Delivering
+### Client - Bridge - Collecting - Static
 
-![](https://raw.githubusercontent.com/gridhead/expedite/main/data/bridge-send.gif)
+![](https://raw.githubusercontent.com/gridhead/expedite/main/data/bridge-recv-stat.png)
 
-### Client - Bridge - Collecting
+### Client - Bridge - Delivering - Progress
 
-![](https://raw.githubusercontent.com/gridhead/expedite/main/data/bridge-recv.gif)
+![](https://raw.githubusercontent.com/gridhead/expedite/main/data/bridge-send-prog.gif)
+
+### Client - Bridge - Collecting - Progress
+
+![](https://raw.githubusercontent.com/gridhead/expedite/main/data/bridge-recv-prog.gif)
+
+### Client - Prompt - Help
+
+![](https://raw.githubusercontent.com/gridhead/expedite/main/data/prompt-help-stat.png)
+
+### Client - Prompt - Delivering - Help
+
+![](https://raw.githubusercontent.com/gridhead/expedite/main/data/prompt-send-help.png)
+
+### Client - Prompt - Collecting - Help
+
+![](https://raw.githubusercontent.com/gridhead/expedite/main/data/prompt-recv-help.png)
+
+### Client - Prompt - Delivering - Static
+
+![](https://raw.githubusercontent.com/gridhead/expedite/main/data/prompt-send-stat.png)
+
+### Client - Prompt - Collecting - Static
+
+![](https://raw.githubusercontent.com/gridhead/expedite/main/data/prompt-recv-stat.png)
+
+### Client - Prompt - Delivering - Progress
+
+![](https://raw.githubusercontent.com/gridhead/expedite/main/data/prompt-send-prog.gif)
+
+### Client - Prompt - Collecting - Progress
+
+![](https://raw.githubusercontent.com/gridhead/expedite/main/data/prompt-recv-prog.gif)
 
 ### Server - Broker
 
-![](https://raw.githubusercontent.com/gridhead/expedite/main/data/brok.png)
+![](https://raw.githubusercontent.com/gridhead/expedite/main/data/brok-stat.png)
 
 ## Installation
 

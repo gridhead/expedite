@@ -67,7 +67,7 @@ def work() -> None:
     "-t",
     "--time",
     "time",
-    type=IntRange(5, 30),
+    type=IntRange(5, 300),
     default=standard.client_time,
     required=False,
     help="Set the expiry period for participants"
@@ -82,7 +82,7 @@ def work() -> None:
     help="Set the identity of the opposing client"
 )
 @version_option(
-    version=__versdata__, prog_name="Expedite Client by Akashdeep Dhar"
+    version=__versdata__, prog_name="Expedite Prompt by Akashdeep Dhar"
 )
 def main(
     host: str = standard.client_host,
