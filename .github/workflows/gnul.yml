@@ -1,0 +1,68 @@
+---
+name: Building the project binary for GNU/Linux OSes
+on: [push]
+jobs:
+  ci-make-gnul:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+
+    steps:
+      - name: Checkout the codebase in local working directory
+        uses: actions/checkout@v4
+
+      - name: Setup a functioning local Python 3 installation
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.12
+
+      - name: Install the base dependencies of the project
+        run: python3 -m pip install --upgrade poetry pyinstaller
+
+      - name: Disable using virtual environments with Poetry
+        run: poetry config virtualenvs.create false
+
+      - name: Install the runtime dependencies of the project
+        run: python3 -m poetry install
+
+      - name: Build the project binary for Expedite Bridge
+        run: pyinstaller expedite/client/bridge/main.py --clean --onefile --name ed-bridge-${GITHUB_HASH:0:8}
+        env:
+          GITHUB_HASH: ${{ github.sha }}
+
+      - name: Upload the project binaries for Expedite Bridge
+        uses: actions/upload-artifact@v4
+        with:
+          name: ed-bridge.gnul
+          path: dist/ed-bridge-*
+          retention-days: 90
+          compression-level: 9
+          overwrite: true
+
+      - name: Build the project binary for Expedite Prompt
+        run: pyinstaller expedite/client/prompt/main.py --clean --onefile --name ed-prompt-${GITHUB_HASH:0:8}
+        env:
+          GITHUB_HASH: ${{ github.sha }}
+
+      - name: Upload the project binaries for Expedite Prompt
+        uses: actions/upload-artifact@v4
+        with:
+          name: ed-prompt.gnul
+          path: dist/ed-prompt-*
+          retention-days: 90
+          compression-level: 9
+          overwrite: true
+
+      - name: Build the project binary for Expedite Server
+        run: pyinstaller expedite/server/main.py --clean --onefile --name ed-server-${GITHUB_HASH:0:8}
+        env:
+          GITHUB_HASH: ${{ github.sha }}
+
+      - name: Upload the project binaries for Expedite Server
+        uses: actions/upload-artifact@v4
+        with:
+          name: ed-server.gnul
+          path: dist/ed-server-*
+          retention-days: 90
+          compression-level: 9
+          overwrite: true
