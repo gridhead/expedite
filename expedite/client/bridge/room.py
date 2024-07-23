@@ -68,7 +68,7 @@ from expedite.view import warning
 class MainWindow(QMainWindow, Ui_mainwind):
     def __init__(self):
         super().__init__()
-        self.headtext = f"Expedite v{__versdata__}"
+        self.headtext = f"Expedite Bridge v{__versdata__}"
         self.loop = new_event_loop()
         set_event_loop(self.loop)
         self.sock = None

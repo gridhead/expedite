@@ -36,7 +36,7 @@ def show_location_dialog(parent=None, oper: str = "") -> str:
 
 
 def truncate_text(text: str = "", size: int = 32) -> str:
-    if len(text) >= 32:
+    if len(text) >= size:
         return text[0:size-3] + "..."
     else:
         return text
@@ -44,7 +44,7 @@ def truncate_text(text: str = "", size: int = 32) -> str:
 
 def return_detail_text() -> str:
     text = """
-    <b>Expedite v{vers}</b><br/>
+    <b>Expedite Bridge v{vers}</b><br/>
     <i>A simple encrypted file transfer service for humans</i><br/><br/>
     Expedite is a simple encrypted file transfer service that allows for people to share synchronously assets among each other without having to rely on third party file sharing services (and constantly worrying about how their data might be used) or feeling the need of having publicly visible IP addresses (and constantly worrying about script kiddies attacking your computer).<br/><br/>
     Expedite Server can be deployed on a virtual private server having an IP address that is discoverable by the Expedite Client users to broker file contents. The transfers facilitated using WebSockets are end-to-end encrypted with the use of 128-bit Advanced Encryption Standard and the server is restricted to logging only unidentifiable activities to the volatile memory.<br/><br/>
