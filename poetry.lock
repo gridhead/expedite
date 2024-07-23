@@ -357,41 +357,6 @@ docs = ["furo (>=2024.5.6)", "sphinx-autodoc-typehints (>=2.2.1)"]
 testing = ["covdefaults (>=2.3)", "pytest (>=8.2.2)", "pytest-cov (>=5)", "pytest-mock (>=3.14)", "setuptools (>=70.1)"]
 
 [[package]]
-name = "pyside6"
-version = "6.7.2"
-description = "Python bindings for the Qt cross-platform application and UI framework"
-optional = false
-python-versions = "<3.13,>=3.9"
-files = [
-    {file = "PySide6-6.7.2-cp39-abi3-macosx_11_0_universal2.whl", hash = "sha256:602debef9ec159b0db48f83b38a0e43e2dad3961f7d99f708d98620f04e9112b"},
-    {file = "PySide6-6.7.2-cp39-abi3-manylinux_2_28_x86_64.whl", hash = "sha256:15e7696a09072ee977f6e6179ab1e48184953df8417bcaa83cfadf0b79747242"},
-    {file = "PySide6-6.7.2-cp39-abi3-manylinux_2_31_aarch64.whl", hash = "sha256:6e0acb471535de303f56e3077aa86f53496b4de659b99ecce80520bcee508a63"},
-    {file = "PySide6-6.7.2-cp39-abi3-win_amd64.whl", hash = "sha256:f73ae0de77d67f51ca3ce8207b12d3a5fa0107d3d5b6e4aeb3b53ee842b0927a"},
-]
-
-[package.dependencies]
-PySide6-Addons = "6.7.2"
-PySide6-Essentials = "6.7.2"
-shiboken6 = "6.7.2"
-
-[[package]]
-name = "pyside6-addons"
-version = "6.7.2"
-description = "Python bindings for the Qt cross-platform application and UI framework (Addons)"
-optional = false
-python-versions = "<3.13,>=3.9"
-files = [
-    {file = "PySide6_Addons-6.7.2-cp39-abi3-macosx_11_0_universal2.whl", hash = "sha256:90b995efce61058d995c603ea480a9a3054fe8206739dcbc273fc3b53d40650f"},
-    {file = "PySide6_Addons-6.7.2-cp39-abi3-manylinux_2_28_x86_64.whl", hash = "sha256:94b9bf6a2a4a7ac671e1776633e50d51326c86f4184f1c6e556f4dd5498fd52a"},
-    {file = "PySide6_Addons-6.7.2-cp39-abi3-manylinux_2_31_aarch64.whl", hash = "sha256:22979b1aa09d9cf1d7a86c8a9aa0cb4791d6bd1cc94f96c5b6780c5ef8a9e34e"},
-    {file = "PySide6_Addons-6.7.2-cp39-abi3-win_amd64.whl", hash = "sha256:ebf549eb25998665d8e4ec24014fbbd37bebc5ecdcb050b34db1e1c03e1bf81d"},
-]
-
-[package.dependencies]
-PySide6-Essentials = "6.7.2"
-shiboken6 = "6.7.2"
-
-[[package]]
 name = "pyside6-essentials"
 version = "6.7.2"
 description = "Python bindings for the Qt cross-platform application and UI framework (Essentials)"
@@ -648,4 +613,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.13"
-content-hash = "f8f79159558ac52e8e8122cbcf31a3edfd7fa7c9a7890490a41a4979c5dbb31b"
+content-hash = "1cb2304fa08cc84381ae62dd8a068e9b4afe6eb1c261ece5b6be36975e7f1f2d"
