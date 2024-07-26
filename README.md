@@ -30,8 +30,33 @@ available servers setup by me instead. Picking the server that is closer to
 your group of users can help with improving performance and reliability of the
 transfer. Please open up a pull request if you wish to list your server here.
 
-- Atlanta, GA - `ws://expedite-atla.apexaltruism.net:6969`
-- Mumbai, MH - `ws://expedite-mumb.apexaltruism.net:6969`
+### Unsecured WebSockets connection
+
+It is recommended for using the unsecured WebSockets connection only for 
+testing and debugging purposes.
+
+- **Mumbai, MH**  
+  `ws://expedite-mumb.apexaltruism.net:6969`
+
+- **Atlanta, GA**  
+  `ws://expedite-atla.apexaltruism.net:6969`
+
+### Secured WebSockets connection
+
+It is recommended for using the secured WebSockets connection for all kinds 
+of general file sharing purposes.
+
+- **Mumbai, MH**  
+  `wss://expedite-mumb.apexaltruism.net` or `wss://expedite-mumb.apexaltruism.net:443`  
+  [**Grade A - Qualys**](https://www.ssllabs.com/ssltest/analyze.html?d=expedite-mumb.apexaltruism.net)  
+  [**Test Result**](https://github.com/gridhead/expedite/blob/main/data/test-mumb-26072024.txt)  
+  ![](https://raw.githubusercontent.com/gridhead/expedite/main/data/cert-mumb-26072024.png)
+
+- **Atlanta, GA**  
+  `wss://expedite-atla.apexaltruism.net` or `wss://expedite-atla.apexaltruism.net:443`  
+  [**Grade A - Qualys**](https://www.ssllabs.com/ssltest/analyze.html?d=expedite-atla.apexaltruism.net)  
+  [**Test Result**](https://github.com/gridhead/expedite/blob/main/data/test-atla-26072024.txt)  
+  ![](https://raw.githubusercontent.com/gridhead/expedite/main/data/cert-atla-26072024.png)
 
 ## Illustration
 

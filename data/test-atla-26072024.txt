@@ -1,0 +1,181 @@
+#####################################################################
+    testssl.sh version 3.0.9 from https://testssl.sh/
+
+  This program is free software. Distribution and modification under
+  GPLv2 permitted. USAGE w/o ANY WARRANTY. USE IT AT YOUR OWN RISK!
+
+    Please file bugs @ https://testssl.sh/bugs/
+
+#####################################################################
+
+ Using bash 5.2.26.  OpenSSL 1.0.2-bad (1.0.2k-dev) [~179 ciphers]
+    on archdesk:./bin/openssl.Linux.x86_64
+    (built: Sep  1 14:03:44 2022, platform: linux-x86_64)
+
+ Start 2024-07-26 09:50:59        -->> ***.***.***.***:443 (expedite-atla.apexaltruism.net) <<--
+
+ rDNS (***.***.***.***): ***-***-***-***-host.colocrossing.com.
+ Service detected:       HTTP
+
+
+ Testing protocols via sockets except NPN+ALPN
+
+ SSLv2      not offered (OK)
+ SSLv3      not offered (OK)
+ TLS 1      not offered
+ TLS 1.1    not offered
+ TLS 1.2    offered (OK)
+ TLS 1.3    offered (OK): final
+ NPN/SPDY   not offered
+ ALPN/HTTP2 h2, http/1.1 (offered)
+
+ Testing cipher categories
+
+ NULL ciphers (no encryption)                  not offered (OK)
+ Anonymous NULL Ciphers (no authentication)    not offered (OK)
+ Export ciphers (w/o ADH+NULL)                 not offered (OK)
+ LOW: 64 Bit + DES, RC[2,4] (w/o export)       not offered (OK)
+ Triple DES Ciphers / IDEA                     not offered
+ Obsolete CBC ciphers (AES, ARIA etc.)         offered
+ Strong encryption (AEAD ciphers)              offered (OK)
+
+
+ Testing robust (perfect) forward secrecy, (P)FS -- omitting Null Authentication/Encryption, 3DES, RC4
+
+ PFS is offered (OK)          TLS_AES_256_GCM_SHA384 TLS_CHACHA20_POLY1305_SHA256 ECDHE-ECDSA-AES256-GCM-SHA384 ECDHE-ECDSA-AES256-SHA384 ECDHE-ECDSA-AES256-SHA ECDHE-ECDSA-CHACHA20-POLY1305 TLS_AES_128_GCM_SHA256 ECDHE-ECDSA-AES128-GCM-SHA256 ECDHE-ECDSA-AES128-SHA256
+                              ECDHE-ECDSA-AES128-SHA
+ Elliptic curves offered:     prime256v1 secp384r1 secp521r1 X25519 X448
+ Finite field group:          ffdhe2048 ffdhe3072 ffdhe4096 ffdhe6144 ffdhe8192
+
+ Testing server preferences
+
+ Has server cipher order?     yes (OK) -- TLS 1.3 and below
+ Negotiated protocol          TLSv1.3
+ Negotiated cipher            TLS_AES_256_GCM_SHA384, 253 bit ECDH (X25519)
+ Cipher order
+    TLSv1.2:   ECDHE-ECDSA-AES256-GCM-SHA384 ECDHE-ECDSA-CHACHA20-POLY1305 ECDHE-ECDSA-AES128-GCM-SHA256 ECDHE-ECDSA-AES256-SHA384 ECDHE-ECDSA-AES128-SHA256 ECDHE-ECDSA-AES256-SHA ECDHE-ECDSA-AES128-SHA
+    TLSv1.3:   TLS_AES_256_GCM_SHA384 TLS_CHACHA20_POLY1305_SHA256 TLS_AES_128_GCM_SHA256
+
+
+ Testing server defaults (Server Hello)
+
+ TLS extensions (standard)    "renegotiation info/#65281" "server name/#0" "EC point formats/#11" "session ticket/#35" "supported versions/#43" "key share/#51" "supported_groups/#10" "max fragment length/#1" "application layer protocol negotiation/#16"
+                              "encrypt-then-mac/#22" "extended master secret/#23"
+ Session Ticket RFC 5077 hint 7200 seconds, session tickets keys seems to be rotated < daily
+ SSL Session ID support       yes
+ Session Resumption           Tickets: yes, ID: yes
+ TLS clock skew               Random values, no fingerprinting possible
+ Signature Algorithm          ECDSA with SHA384
+ Server key size              EC 256 bits
+ Server key usage             Digital Signature
+ Server extended key usage    TLS Web Server Authentication, TLS Web Client Authentication
+ Serial                       03E4F5F4193B80C23260316A3DAD48FEB7C2 (OK: length 18)
+ Fingerprints                 SHA1 C586B26696875DF4194D3888AC43F7098FD3A247
+                              SHA256 27466B5CC0E6909FF9EB05601432F275A5F6F5594B834DC30AFFBACBF798855E
+ Common Name (CN)             *.apexaltruism.net
+ subjectAltName (SAN)         *.apexaltruism.net apexaltruism.net
+ Issuer                       E6 (Let's Encrypt from US)
+ Trust (hostname)             Ok via SAN wildcard (same w/o SNI)
+ Chain of trust               Ok
+ EV cert (experimental)       no
+ ETS/"eTLS", visibility info  not present
+ Certificate Validity (UTC)   89 >= 30 days (2024-07-25 14:57 --> 2024-10-23 14:57)
+ # of certificates provided   2
+ Certificate Revocation List  --
+ OCSP URI                     http://e6.o.lencr.org
+ OCSP stapling                not offered
+ OCSP must staple extension   --
+ DNS CAA RR (experimental)    not offered
+ Certificate Transparency     yes (certificate extension)
+
+
+ Testing HTTP header response @ "/"
+
+ HTTP Status Code             426 Upgrade Required. Oh, didn't expect "426 Upgrade Required"
+ HTTP clock skew              -12 sec from localtime
+ Strict Transport Security    not offered
+ Public Key Pinning           --
+ Server banner                Python/3.12 websockets/12.0
+ Application banner           --
+ Cookie(s)                    (none issued at "/") -- maybe better try target URL of 30x
+ Security headers             Upgrade: websocket
+ Reverse Proxy banner         --
+
+
+ Testing vulnerabilities
+
+ Heartbleed (CVE-2014-0160)                not vulnerable (OK), no heartbeat extension
+ CCS (CVE-2014-0224)                       not vulnerable (OK)
+ Ticketbleed (CVE-2016-9244), experiment.  not vulnerable (OK)
+ ROBOT                                     Server does not support any cipher suites that use RSA key transport
+ Secure Renegotiation (RFC 5746)           supported (OK)
+ Secure Client-Initiated Renegotiation     not vulnerable (OK)
+ CRIME, TLS (CVE-2012-4929)                not vulnerable (OK)
+ BREACH (CVE-2013-3587)                    no HTTP compression (OK)  - only supplied "/" tested
+ POODLE, SSL (CVE-2014-3566)               not vulnerable (OK), no SSLv3 support
+ TLS_FALLBACK_SCSV (RFC 7507)              No fallback possible (OK), no protocol below TLS 1.2 offered
+ SWEET32 (CVE-2016-2183, CVE-2016-6329)    not vulnerable (OK)
+ FREAK (CVE-2015-0204)                     not vulnerable (OK)
+ DROWN (CVE-2016-0800, CVE-2016-0703)      not vulnerable on this host and port (OK)
+                                           no RSA certificate, thus certificate can't be used with SSLv2 elsewhere
+ LOGJAM (CVE-2015-4000), experimental      not vulnerable (OK): no DH EXPORT ciphers, no DH key detected with <= TLS 1.2
+ BEAST (CVE-2011-3389)                     not vulnerable (OK), no SSL3 or TLS1
+ LUCKY13 (CVE-2013-0169), experimental     potentially VULNERABLE, uses cipher block chaining (CBC) ciphers with TLS. Check patches
+ RC4 (CVE-2013-2566, CVE-2015-2808)        no RC4 ciphers detected (OK)
+
+
+ Testing 370 ciphers via OpenSSL plus sockets against the server, ordered by encryption strength
+
+Hexcode  Cipher Suite Name (OpenSSL)       KeyExch.   Encryption  Bits     Cipher Suite Name (IANA/RFC)
+-----------------------------------------------------------------------------------------------------------------------------
+ x1302   TLS_AES_256_GCM_SHA384            ECDH 253   AESGCM      256      TLS_AES_256_GCM_SHA384
+ x1303   TLS_CHACHA20_POLY1305_SHA256      ECDH 253   ChaCha20    256      TLS_CHACHA20_POLY1305_SHA256
+ xc02c   ECDHE-ECDSA-AES256-GCM-SHA384     ECDH 256   AESGCM      256      TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
+ xc024   ECDHE-ECDSA-AES256-SHA384         ECDH 256   AES         256      TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384
+ xc00a   ECDHE-ECDSA-AES256-SHA            ECDH 256   AES         256      TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA
+ xcca9   ECDHE-ECDSA-CHACHA20-POLY1305     ECDH 253   ChaCha20    256      TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256
+ x1301   TLS_AES_128_GCM_SHA256            ECDH 253   AESGCM      128      TLS_AES_128_GCM_SHA256
+ xc02b   ECDHE-ECDSA-AES128-GCM-SHA256     ECDH 256   AESGCM      128      TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
+ xc023   ECDHE-ECDSA-AES128-SHA256         ECDH 256   AES         128      TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256
+ xc009   ECDHE-ECDSA-AES128-SHA            ECDH 256   AES         128      TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA
+
+
+ Running client simulations (HTTP) via sockets
+
+ Android 6.0                  TLSv1.2 ECDHE-ECDSA-AES128-GCM-SHA256, 256 bit ECDH (P-256)
+ Android 7.0 (native)         TLSv1.2 ECDHE-ECDSA-AES256-GCM-SHA384, 256 bit ECDH (P-256)
+ Android 8.1 (native)         TLSv1.2 ECDHE-ECDSA-AES256-GCM-SHA384, 253 bit ECDH (X25519)
+ Android 9.0 (native)         TLSv1.3 TLS_AES_256_GCM_SHA384, 253 bit ECDH (X25519)
+ Android 10.0 (native)        TLSv1.3 TLS_AES_256_GCM_SHA384, 253 bit ECDH (X25519)
+ Android 11 (native)          TLSv1.3 TLS_AES_256_GCM_SHA384, 253 bit ECDH (X25519)
+ Android 12 (native)          TLSv1.3 TLS_AES_256_GCM_SHA384, 253 bit ECDH (X25519)
+ Chrome 79 (Win 10)           TLSv1.3 TLS_AES_256_GCM_SHA384, 253 bit ECDH (X25519)
+ Chrome 101 (Win 10)          TLSv1.3 TLS_AES_256_GCM_SHA384, 253 bit ECDH (X25519)
+ Firefox 66 (Win 8.1/10)      TLSv1.3 TLS_AES_256_GCM_SHA384, 253 bit ECDH (X25519)
+ Firefox 100 (Win 10)         TLSv1.3 TLS_AES_256_GCM_SHA384, 253 bit ECDH (X25519)
+ IE 6 XP                      No connection
+ IE 8 Win 7                   No connection
+ IE 8 XP                      No connection
+ IE 11 Win 7                  TLSv1.2 ECDHE-ECDSA-AES256-GCM-SHA384, 256 bit ECDH (P-256)
+ IE 11 Win 8.1                TLSv1.2 ECDHE-ECDSA-AES256-GCM-SHA384, 256 bit ECDH (P-256)
+ IE 11 Win Phone 8.1          TLSv1.2 ECDHE-ECDSA-AES256-GCM-SHA384, 256 bit ECDH (P-256)
+ IE 11 Win 10                 TLSv1.2 ECDHE-ECDSA-AES256-GCM-SHA384, 256 bit ECDH (P-256)
+ Edge 15 Win 10               TLSv1.2 ECDHE-ECDSA-AES256-GCM-SHA384, 253 bit ECDH (X25519)
+ Edge 101 Win 10 21H2         TLSv1.3 TLS_AES_256_GCM_SHA384, 253 bit ECDH (X25519)
+ Safari 12.1 (iOS 12.2)       TLSv1.3 TLS_CHACHA20_POLY1305_SHA256, 253 bit ECDH (X25519)
+ Safari 13.0 (macOS 10.14.6)  TLSv1.3 TLS_CHACHA20_POLY1305_SHA256, 253 bit ECDH (X25519)
+ Safari 15.4 (macOS 12.3.1)   TLSv1.3 TLS_AES_256_GCM_SHA384, 253 bit ECDH (X25519)
+ Java 7u25                    No connection
+ Java 8u161                   TLSv1.2 ECDHE-ECDSA-AES256-GCM-SHA384, 256 bit ECDH (P-256)
+ Java 11.0.2 (OpenJDK)        TLSv1.3 TLS_AES_256_GCM_SHA384, 256 bit ECDH (P-256)
+ Java 17.0.3 (OpenJDK)        TLSv1.3 TLS_AES_256_GCM_SHA384, 253 bit ECDH (X25519)
+ go 1.17.8                    TLSv1.3 TLS_AES_256_GCM_SHA384, 253 bit ECDH (X25519)
+ LibreSSL 2.8.3 (Apple)       TLSv1.2 ECDHE-ECDSA-CHACHA20-POLY1305, 253 bit ECDH (X25519)
+ OpenSSL 1.0.2e               TLSv1.2 ECDHE-ECDSA-AES256-GCM-SHA384, 256 bit ECDH (P-256)
+ OpenSSL 1.1.0l (Debian)      TLSv1.2 ECDHE-ECDSA-AES256-GCM-SHA384, 253 bit ECDH (X25519)
+ OpenSSL 1.1.1d (Debian)      TLSv1.3 TLS_AES_256_GCM_SHA384, 253 bit ECDH (X25519)
+ OpenSSL 3.0.3 (git)          TLSv1.3 TLS_AES_256_GCM_SHA384, 253 bit ECDH (X25519)
+ Apple Mail (16.0)            TLSv1.2 ECDHE-ECDSA-AES256-GCM-SHA384, 256 bit ECDH (P-256)
+ Thunderbird (91.9)           TLSv1.3 TLS_AES_256_GCM_SHA384, 253 bit ECDH (X25519)
+
+ Done 2024-07-26 09:55:57 [ 332s] -->> ***.***.***.***:443 (expedite-atla.apexaltruism.net) <<--
