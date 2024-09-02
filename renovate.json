@@ -1,0 +1,60 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:base",
+    "group:allNonMajor",
+    "schedule:weekdays",
+    ":maintainLockFilesWeekly",
+    ":separateMultipleMajorReleases",
+    ":automergeMinor",
+    ":gitSignOff",
+    ":enableVulnerabilityAlertsWithLabel(security)"
+  ],
+  "lockFileMaintenance": {
+    "enabled": true,
+    "automerge": true,
+    "extends": [
+      "group:allNonMajor"
+    ],
+    "commitMessageAction": "Automated dependency updates for Expedite"
+  },
+  "automergeStrategy": "rebase",
+  "rangeStrategy": "widen",
+  "stabilityDays": 4,
+  "labels": ["dependencies"],
+  "packageRules": [
+    {
+      "matchLanguages": ["python"],
+      "addLabels": ["python"]
+    },
+    {
+      "matchLanguages": ["python"],
+      "matchPackageNames": [
+        "certifi",
+        "pytz"
+      ],
+      "automerge": true
+    },
+    {
+      "matchDepTypes": ["devDependencies"],
+      "groupName": "dev dependencies",
+      "automerge": true
+    },
+    {
+      "extends": [
+        "packages:linters"
+      ],
+      "matchPackageNames": [
+        "flake8",
+        "pylint",
+        "pep8",
+        "ruff",
+        "black",
+        "bandit",
+        "safety",
+        "reuse"
+      ],
+      "automerge": true
+    }
+  ]
+}
