@@ -1,4 +1,4 @@
-FROM fedora:40
+FROM fedora:41
 
 LABEL maintainer "Akashdeep Dhar <t0xic0der@fedoraproject.org>"
 
