@@ -1,0 +1,24 @@
+---
+name: Manage artifacts to retain four recent artifacts
+on: [push]
+jobs:
+  ci-wipe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Manage artifacts to retain four recent artifacts
+        run: |
+             KEEP_QANT=4
+             ARTIFACT_UNIT=$(gh api repos/gridhead/expedite/actions/artifacts --paginate --jq '.artifacts | sort_by(.created_at) | .[].id')
+             ARTIFACT_LIST=($ARTIFACT_UNIT)
+             WIPE_QANT=$((${#ARTIFACT_LIST[@]} - $KEEP_QANT))
+             if [ $WIPE_QANT -gt 0 ]; then
+               for item in $(seq 0 $(($WIPE_QANT - 1))); do
+                 ARTIFACT_ID=${ARTIFACT_LIST[$item]}
+                 echo "Deleting artifact ID $ARTIFACT_ID..."
+                 gh api repos/gridhead/expedite/actions/artifacts/$ARTIFACT_ID -X DELETE
+               done
+             else
+               echo "No artifacts available."
+             fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GHBTOKEN }}
