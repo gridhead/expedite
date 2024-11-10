@@ -27,6 +27,11 @@ from expedite.view import general, success, warning
 
 
 def talk() -> None:
+    """
+    Show information on the client side during startup
+
+    :return:
+    """
     success(f"Expedite Client v{__versdata__}")
     general(f"Addr. {standard.client_host}")
     general(f"Pass. {standard.client_pswd}")

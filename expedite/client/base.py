@@ -22,21 +22,36 @@ replicated with the express permission of Red Hat, Inc.
 
 
 from os.path import basename, exists, getsize
-from typing import Union
 
 from expedite.client.auth import decr_bite, encr_bite
 from expedite.config import standard
 
 
 def find_size() -> int:
+    """
+    Retrieve the file size using the file location
+
+    :return: Size of the intended file
+    """
     return getsize(standard.client_file)
 
 
 def find_name() -> str:
+    """
+    Retrieve the file name using the file location
+
+    :return: Name of the intended file
+    """
     return basename(standard.client_file)
 
 
-def ease_size(size: Union[int, float]) -> str:
+def ease_size(size: int | float) -> str:
+    """
+    Retrieve the file size in human-readable format
+
+    :param size: Size in byte count format
+    :return: Size in human-readable format
+    """
     unitlist = ["B", "KB", "MB", "GB", "TB", "PB"]
     indx, opsz = 0, size
     if size == 0:
@@ -48,6 +63,11 @@ def ease_size(size: Union[int, float]) -> str:
 
 
 def bite_file() -> list:
+    """
+    Retrieve the list of read ranges from chunk size
+
+    :return: List of read ranges
+    """
     init, size, bite = 0, standard.client_filesize, []
     while init < size:
         bite.append(init)
@@ -60,6 +80,13 @@ def bite_file() -> list:
 
 
 def read_file(init: int = 0, fina: int = 0) -> bytes:
+    """
+    Retrieve the chunk from the provided byte range
+
+    :param init: Starting byte index for reading
+    :param fina: Stopping byte index for reading
+    :return: Chunks to read
+    """
     if exists(standard.client_file):
         with open(standard.client_file, "rb") as file:
             file.seek(init)
@@ -72,6 +99,12 @@ def read_file(init: int = 0, fina: int = 0) -> bytes:
 
 
 def fuse_file(pack: bytes = b"") -> bool:
+    """
+    Create and join the chunks on the storage device
+
+    :param pack: Chunks to save
+    :return:
+    """
     if not standard.client_fileinit:
         mode, standard.client_fileinit = "wb", True
     else:

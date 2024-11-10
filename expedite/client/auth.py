@@ -34,11 +34,26 @@ from expedite.config import standard
 
 
 def derive_code(password: str = standard.client_pswd, salt: bytes = standard.client_salt) -> bytes:
+    """
+    Derive byte convertion from password and salt composition
+
+    :param password: Password provided by the clients
+    :param salt: Byte array for additional protection
+    :return: Cryptography HMAC code
+    """
     kdfo = PBKDF2HMAC(algorithm=hashes.SHA256(), length=32, salt=salt, iterations=100000, backend=default_backend())
     return kdfo.derive(password.encode())
 
 
 def encr_bite(data: bytes = b"", code: bytes = standard.client_code, invc: bytes = standard.client_invc) -> bytes:
+    """
+    Encrypt file chunks using converted cryptography HMAC code
+
+    :param data: Chunks to read, encrypt and deliver
+    :param code: Generated cryptography HMAC code
+    :param invc: Initialization vector for added protection
+    :return: Encrypted bytes
+    """
     cipher = Cipher(algorithms.AES(code), modes.CBC(invc), backend=default_backend())
     encrob = cipher.encryptor()
     padder = padding.PKCS7(algorithms.AES.block_size).padder()
@@ -47,6 +62,14 @@ def encr_bite(data: bytes = b"", code: bytes = standard.client_code, invc: bytes
 
 
 def decr_bite(data: bytes = b"", code: bytes = standard.client_code, invc: bytes = standard.client_invc) -> bytes:
+    """
+    Decrypt file chunks using converted cryptography HMAC code
+
+    :param data: Chunks to collect, decrypt and save
+    :param code: Generated cryptography HMAC code
+    :param invc: Initialization vector for added protection
+    :return: Decrypted bytes
+    """
     try:
         cipher = Cipher(algorithms.AES(code), modes.CBC(invc), backend=default_backend())
         decrob = cipher.decryptor()
@@ -58,6 +81,11 @@ def decr_bite(data: bytes = b"", code: bytes = standard.client_code, invc: bytes
 
 
 def encr_metadata() -> bytes:
+    """
+    Encrypt metadata to deliver before file contents
+
+    :return: Encrypted bytes
+    """
     standard.client_invc, standard.client_salt = os.urandom(16), os.urandom(16)
     data = dumps({"call": "meta", "name": standard.client_filename, "size": standard.client_filesize, "chks": len(standard.client_bind)-1})
     standard.client_code = derive_code(standard.client_pswd, standard.client_salt)
@@ -66,7 +94,13 @@ def encr_metadata() -> bytes:
     return standard.client_invc + standard.client_salt + endt
 
 
-def decr_metadata(pack: bytes = b"") -> tuple:
+def decr_metadata(pack: bytes = b"") -> tuple[str, int, bytes]:
+    """
+    Decrypt metadata to collect before file contents
+
+    :param pack: Chunks to decrypt
+    :return: Decrypted chunks
+    """
     standard.client_invc, standard.client_salt = pack[0:16], pack[16:32]
     data = pack[32:]
     standard.client_code = derive_code(standard.client_pswd, standard.client_salt)
