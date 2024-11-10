@@ -30,12 +30,17 @@ from websockets import serve
 from expedite import __versdata__
 from expedite.config import standard
 from expedite.server.meet import talk
-from expedite.server.room import oper
+from expedite.server.room import exchange
 from expedite.view import failure, general
 
 
-def work():
-    func = serve(oper, standard.server_addr, standard.server_port)
+def work() -> None:
+    """
+    Start the worker module to serve the exchange service
+
+    :return:
+    """
+    func = serve(exchange, standard.server_addr, standard.server_port)
     get_event_loop().run_until_complete(func)
     get_event_loop().run_forever()
 
@@ -66,6 +71,13 @@ def work():
     version=__versdata__, prog_name="Expedite Server by Akashdeep Dhar"
 )
 def main(addr: str = standard.server_addr, port: int = standard.server_port) -> None:
+    """
+    Configure the service particulars before starting it
+
+    :param addr: Interface for the service endpoint
+    :param port: Port value for the service endpoint
+    :return:
+    """
     try:
         standard.server_addr = addr
         standard.server_port = port

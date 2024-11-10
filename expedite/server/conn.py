@@ -32,6 +32,20 @@ from expedite.view import failure, general, success, warning
 
 
 async def exchange_insert(sock: WebSocketServerProtocol, plan: str = standard.client_plan, scan: str = standard.client_endo, time: int = standard.client_time) -> str | bool:
+    """
+    Comply with the client request of joining the network
+
+    If client ABC joins before client XYZ
+      - assuming that client ABC wants to connect to client XYZ
+      - client ABC does not need to provide any target identity
+      - client XYZ has to provide client ABC as target identity
+
+    :param sock: Websocket object belonging to the connecting client
+    :param plan: Operation intent of the connecting client - This can be either SEND or RECV depending on the purpose
+    :param scan: Target client sought by the connecting client - This can be either empty string or hexadecimal string
+    :param time: Identity provided by the exchange server to the connecting client to be recognized within the network
+    :return: Confirmation of the action completion
+    """
     if sock not in standard.connection_dict:
         if plan in ["SEND", "RECV"]:
             iden = uuid4().hex[0:8].upper()
@@ -53,6 +67,24 @@ async def exchange_insert(sock: WebSocketServerProtocol, plan: str = standard.cl
 
 
 async def exchange_remove(sock: WebSocketServerProtocol) -> bool:
+    """
+    Inform the client about them being booted off the network
+
+    Here is how the logic works -
+
+    Once participant ABC is flagged for removal either from client side or server side
+      - If participant ABC exists in the connection dictionary
+        - If participant ABC is paired with participant XYZ
+          - Participant XYZ is disconnected from the network and removed from the connection dictionary
+          - Participant ABC is disconnected from the network and removed from the connection dictionary
+        - If participant ABC is not paired with anyone else
+          - Participant ABC is disconnected from the network and removed from the connection dictionary
+      - If participant ABC does not exist in the connection dictionary
+        - Do nothing
+
+    :param sock: Websocket object belonging to the disconnecting client
+    :return: Confirmation of the action completion
+    """
     if sock in standard.connection_dict:
         if standard.connection_dict[sock].ptsc in standard.connection_dict and standard.connection_dict[sock].ptsc.state == 1:
             warning(f"{standard.connection_dict[sock].ptid} left.")
@@ -67,6 +99,36 @@ async def exchange_remove(sock: WebSocketServerProtocol) -> bool:
 
 
 async def exchange_inform(sock: WebSocketServerProtocol, plan: str = standard.client_plan, scan: str = standard.client_endo, iden: str = standard.client_iden) -> int:
+    """
+    Inform the client about them being able to join the network
+
+    Here is how the logic works -
+
+    After client ABC is able to join the network with operation intent P
+      - If client ABC has provided that they are looking for client XYZ for DEF seconds
+        - If client XYZ has not yet joined the network
+          - Client ABC will wait until the client XYZ will join the network [Code 3]
+          - Client ABC will disconnect after DEF seconds if the client XYZ does not turn up
+        - If client XYZ has been connected to the network for a while
+          - If client XYZ is not yet paired with anyone else
+            - If client XYZ has the operation intent Q (opposite of operation intent P of client ABC)
+              - Client ABC will be paired with client XYZ due to the positive operation intents [Code 0]
+              - Client XYZ will be paired with client ABC due to the positive operation intents [Code 0]
+            - If client XYZ has the operation intent P (selfsame of operation intent P of client ABC)
+              - Client ABC will be booted off the network due to the negative operation intents [Code 1]
+              - Client XYZ will be booted off the network due to the negative operation intents [Code 1]
+          - If client XYZ has already paired with anyone else
+            - Client ABC will be booted off the network as client XYZ is already paired [Code 2]
+      - If client ABC has provided that they are waiting for connection for DEF seconds
+        - Client ABC will wait until they are connected with some client [Code 3]
+        - Client ABC will disconnect after DEF seconds if they are not paired until then
+
+    :param sock: Websocket object belonging to the connecting client
+    :param plan: Operation intent of the connecting client - This can be either SEND or RECV depending on the purpose
+    :param scan: Target client sought by the connecting client - This can be either empty string or hexadecimal string
+    :param iden: Identity provided by the exchange server to the connecting client to be recognized within the network
+    :return: Confirmation of the action completion
+    """
     for indx in standard.connection_dict:
         if standard.connection_dict[indx].iden == scan:
             if not standard.connection_dict[indx].ptsc:
@@ -90,6 +152,14 @@ async def exchange_inform(sock: WebSocketServerProtocol, plan: str = standard.cl
 
 
 async def exchange_json(sock: WebSocketServerProtocol, note: str = "", data: str = "") -> bool:
+    """
+    Convey the JSON elements from delivering client to collecting client
+
+    :param sock: Websocket object belonging to the delivering client
+    :param note: Action requested to be performed by the collecting client
+    :param data: Data elements that are to be conveyed across
+    :return: Confirmation of the action completion
+    """
     general(standard.server_note[note].format(sj=standard.connection_dict[sock].iden, oj=standard.connection_dict[sock].ptid))
     if sock in standard.connection_dict:
         if standard.connection_dict[sock].ptsc in standard.connection_dict and standard.connection_dict[sock].ptsc.state == 1:
@@ -102,6 +172,13 @@ async def exchange_json(sock: WebSocketServerProtocol, note: str = "", data: str
 
 
 async def exchange_byte(sock: WebSocketServerProtocol, pack: bytes = b"") -> bool:
+    """
+    Convey the file contents from delivering client to collecting client
+
+    :param sock: Websocket object belonging to the delivering client
+    :param pack: File contents that are to be conveyed across
+    :return: Confirmation of the action completion
+    """
     if sock in standard.connection_dict:
         if standard.connection_dict[sock].ptsc in standard.connection_dict and standard.connection_dict[sock].ptsc.state == 1:
             await standard.connection_dict[sock].ptsc.send(pack)

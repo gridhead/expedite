@@ -28,6 +28,15 @@ from expedite.config import standard
 
 class ExpediteConnection:
     def __init__(self, iden: str = standard.client_iden, plan: str = standard.client_plan, scan: str = standard.client_endo, time: int = standard.client_time) -> None:
+        """
+        Initialize the Expedite connection with the client identity, operation intent, target identity and waiting time
+
+        :param iden: Identity provided by the exchange server to the connecting client to be recognized within the network
+        :param plan: Operation intent of the connecting client - This can be either SEND or RECV depending on the purpose
+        :param scan: Target client sought by the connecting client - This can be either empty string or hexadecimal string
+        :param time: Time for which a connecting client will stay connected to the network and wait for a pairing process
+        :return:
+        """
         self.iden = iden
         self.plan = plan
         self.scan = scan if scan != "" else None
@@ -36,5 +45,14 @@ class ExpediteConnection:
         self.ptsc = None
 
     def pair_connection(self, ptid: str = standard.client_endo, ptsc: WebSocketServerProtocol = None) -> None:
+        """
+        Configure the partner identity and partner sought when the pairing process with both the clients has completed
+
+        These attributes belong to the pairmate and are populated for the client after the pairing process is complete
+
+        :param ptid: Identity provided by the exchange server to the connecting client to be recognized within the network
+        :param ptsc: Websocket object belonging to the connecting client
+        :return:
+        """
         self.ptid = ptid
         self.ptsc = ptsc
