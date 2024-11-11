@@ -36,6 +36,11 @@ from expedite.config import standard
 
 
 def work() -> None:
+    """
+    Start the worker module to start the transfer service
+
+    :return:
+    """
     talk()
     try:
         run(oper())
@@ -88,7 +93,15 @@ def main(
     host: str = standard.client_host,
     time: int = standard.client_time,
     endo: str = standard.client_endo,
-):
+) -> None:
+    """
+    Configure the service particulars before starting it
+
+    :param host: Location where the exchange service is hosted
+    :param time: Time for which the client has to wait before disconnecting
+    :param endo: Network identity of target client for pairing and transfer
+    :return:
+    """
     standard.client_host = host
     standard.client_time = time
     standard.client_endo = endo
@@ -128,6 +141,14 @@ def send(
     file: str = standard.client_file,
     size: int = standard.chunking_size,
 ) -> None:
+    """
+    Configure the service particulars before delivering
+
+    :param pswd: Password for encrypting purposes
+    :param file: Filepath for delivering file
+    :param size: Unit size for file chunking
+    :return:
+    """
     standard.client_pswd = pswd
     standard.client_file = file
     standard.chunking_size = size
@@ -154,6 +175,12 @@ def send(
 def recv(
     pswd: str = standard.client_pswd
 ) -> None:
+    """
+    Configure the service particulars before collecting
+
+    :param pswd: Password for decrypting purposes
+    :return:
+    """
     standard.client_pswd = pswd
     standard.client_plan = "RECV"
     work()

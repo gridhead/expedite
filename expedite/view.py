@@ -26,17 +26,41 @@ from click import style
 from expedite.config import standard
 
 
-def success(message) -> None:
-    standard.logger.info(style(message, fg="green", bold=True))
+def success(text) -> None:
+    """
+    Show textual message in success format
+
+    :param text: Textual message
+    :return:
+    """
+    standard.logger.info(style(text, fg="green", bold=True))
 
 
-def failure(message) -> None:
-    standard.logger.error(style(message, fg="red", bold=True))
+def failure(text) -> None:
+    """
+    Show textual message in failure format
+
+    :param text: Textual message
+    :return:
+    """
+    standard.logger.error(style(text, fg="red", bold=True))
 
 
-def warning(message) -> None:
-    standard.logger.warning(style(message, fg="yellow", bold=True))
+def warning(text) -> None:
+    """
+    Show textual message in warning format
+
+    :param text: Textual message
+    :return:
+    """
+    standard.logger.warning(style(text, fg="yellow", bold=True))
 
 
-def general(message) -> None:
-    standard.logger.info(message)
+def general(text) -> None:
+    """
+    Show textual message in general format
+
+    :param text: Textual message
+    :return:
+    """
+    standard.logger.info(text)

@@ -37,11 +37,11 @@ from expedite.client.base import ease_size, fuse_file
 from expedite.client.conn import (
     collect_confirmation,
     collect_connection_from_pairness,
+    collect_connection_to_server,
     collect_contents,
     collect_digest_checks,
     collect_dropping_summon,
     collect_metadata,
-    collect_permission_to_join,
     collect_separation_from_mistaken_password,
     deliver_confirmation,
     deliver_connection_to_server,
@@ -56,7 +56,12 @@ from expedite.config import standard
 from expedite.view import general
 
 
-async def oper():
+async def oper() -> None:
+    """
+    Exchange data to the target client after connecting to the exchange server
+
+    :return:
+    """
     try:
         async with connect(standard.client_host) as sock:
             get_event_loop().call_later(standard.client_time, lambda: ensure_future(deliver_suspension_from_expiry_prompt(sock)))
@@ -68,7 +73,7 @@ async def oper():
                     if standard.client_plan in ["SEND", "RECV"]:
                         # If the purpose of the client is either DELIVERING or COLLECTING
                         if mesgdict["call"] == "okay":
-                            await collect_permission_to_join(mesgdict["iden"])
+                            await collect_connection_to_server(mesgdict["iden"])
                         elif mesgdict["call"] in ["awry", "lone"]:
                             await facade_exit(sock, False, mesgdict["call"])
                     if standard.client_plan == "SEND":
@@ -113,6 +118,12 @@ async def oper():
 
 
 async def show_deliver_contents(sock: WebSocketClientProtocol) -> bool:
+    """
+    Facilitate encrypting and delivering file contents
+
+    :param sock: Websocket object belonging to the server session
+    :return: Confirmation of the action completion
+    """
     general(f"Delivering contents for '{standard.client_filename}' ({ease_size(standard.client_filesize)}) to {standard.client_endo}.")
     standard.client_movestrt = time.time()
     with logging_redirect_tqdm():
@@ -124,6 +135,13 @@ async def show_deliver_contents(sock: WebSocketClientProtocol) -> bool:
 
 
 async def show_collect_contents(sock: WebSocketClientProtocol, pack: bytes = b"") -> bool:
+    """
+    Facilitate collecting and decrypting file contents
+
+    :param sock: Websocket object belonging to the server session
+    :param pack: Byte chunk that is to be collected and decrypted
+    :return: Confirmation of the action completion
+    """
     general(f"Collecting contents for '{standard.client_filename}' ({ease_size(standard.client_filesize)}) from {standard.client_endo}.")
     standard.client_movestrt = time.time()
     fuse_file(pack)

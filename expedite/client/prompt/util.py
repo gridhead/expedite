@@ -31,6 +31,14 @@ from expedite.view import failure, general, success, warning
 
 
 async def facade_exit(sock: WebSocketClientProtocol = None, cond: bool = True, note: str = "") -> None:
+    """
+    Terminate the websocket object elegantly before leaving the application
+
+    :param sock: Websocket object belonging to the server session
+    :param cond: Condition within which the disconnection has to take place
+    :param note: Situation within which the disconnection was caused
+    :return:
+    """
     if note != "done":
         warning(standard.client_note[note])
     if sock:
@@ -45,6 +53,12 @@ async def facade_exit(sock: WebSocketClientProtocol = None, cond: bool = True, n
     general("Exiting.")
 
 
-async def deliver_suspension_from_expiry_prompt(sock: WebSocketClientProtocol):
+async def deliver_suspension_from_expiry_prompt(sock: WebSocketClientProtocol) -> None:
+    """
+    Terminate the websocket session elegantly after the designated timeout
+
+    :param sock: Websocket object belonging to the server session
+    :return:
+    """
     if await deliver_suspension_from_expiry(sock):
         await facade_exit(sock, False, "rest")

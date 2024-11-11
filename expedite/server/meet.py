@@ -27,6 +27,11 @@ from expedite.view import general, success
 
 
 def talk() -> None:
+    """
+    Show information on the server side during startup
+
+    :return:
+    """
     success(f"Expedite Server v{__versdata__}")
     general(f"Addr. {standard.server_addr}")
     general(f"Port. {standard.server_port}")

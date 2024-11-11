@@ -37,6 +37,12 @@ from expedite.view import general, warning
 
 
 async def deliver_connection_to_server(sock: WebSocketClientProtocol) -> bool:
+    """
+    Inform target client of connecting to the exchange server
+
+    :param sock: Websocket object belonging to the server session
+    :return: Confirmation of the action completion
+    """
     general("Attempting to connect to the network.")
     try:
         await sock.send(dumps({"call": "join", "plan": standard.client_plan, "scan": standard.client_endo, "wait": standard.client_time}))
@@ -46,7 +52,13 @@ async def deliver_connection_to_server(sock: WebSocketClientProtocol) -> bool:
         return False
 
 
-async def collect_permission_to_join(iden: str = standard.client_iden) -> bool:
+async def collect_connection_to_server(iden: str = standard.client_iden) -> bool:
+    """
+    Show textual message of connecting to the exchange server
+
+    :param iden: Network identity of person client
+    :return: Confirmation of the action completion
+    """
     standard.client_iden = iden
     general("Successfully connected to the network.")
     warning(f"You are now identified as {iden} in the network.")
@@ -54,6 +66,12 @@ async def collect_permission_to_join(iden: str = standard.client_iden) -> bool:
 
 
 async def deliver_suspension_from_expiry(sock: WebSocketClientProtocol) -> bool:
+    """
+    Inform exchange server about the disconnection from timed expiry
+
+    :param sock: Websocket object belonging to the server session
+    :return: Confirmation of the action completion
+    """
     if not standard.client_pair:
         general("Attempting to abandon from the network after expiry.")
         await sock.send(dumps({"call": "rest"}))
@@ -63,6 +81,12 @@ async def deliver_suspension_from_expiry(sock: WebSocketClientProtocol) -> bool:
 
 
 async def collect_connection_from_pairness(iden: str = standard.client_endo) -> bool:
+    """
+    Show textual message of collecting confirmation of pairing
+
+    :param iden: Network identity of target client
+    :return: Confirmation of the action completion
+    """
     standard.client_endo = iden
     standard.client_pair = True
     general(f"Attempting pairing with {standard.client_endo}.")
@@ -70,7 +94,25 @@ async def collect_connection_from_pairness(iden: str = standard.client_endo) -> 
     return True
 
 
+async def deliver_metadata(sock: WebSocketClientProtocol) -> bool:
+    """
+    Inform target client of encrypting and delivering the metadata
+
+    :param sock: Websocket object belonging to the server session
+    :return: Confirmation of the action completion
+    """
+    general("Generating cryptography sign.")
+    await sock.send(encr_metadata())
+    return True
+
+
 async def collect_metadata(pack: bytes = b"") -> bool:
+    """
+    Show textual message of collecting and decrypting the metadata
+
+    :param pack: Encrypted metadata collected from target client
+    :return: Confirmation of the action completion
+    """
     try:
         general("Generating cryptography sign.")
         standard.client_filename, standard.client_filesize, standard.client_chks = decr_metadata(pack)
@@ -79,24 +121,35 @@ async def collect_metadata(pack: bytes = b"") -> bool:
         return False
 
 
-async def deliver_metadata(sock: WebSocketClientProtocol) -> bool:
-    general("Generating cryptography sign.")
-    await sock.send(encr_metadata())
-    return True
-
-
 async def deliver_dropping_summon(sock: WebSocketClientProtocol) -> bool:
+    """
+    Inform target client of starting the exchange process
+
+    :param sock: Websocket object belonging to the server session
+    :return: Confirmation of the action completion
+    """
     await sock.send(dumps({"call": "drop"}))
     general(f"Delivering collection summon to {standard.client_endo}.")
     return True
 
 
 async def collect_dropping_summon() -> bool:
+    """
+    Show textual message of starting the exchange process
+
+    :return: Confirmation of the action completion
+    """
     general(f"Collecting delivering summon from {standard.client_endo}.")
     return True
 
 
 async def deliver_contents(sock: WebSocketClientProtocol) -> Generator[Tuple[bytes, int], None, None]:
+    """
+    Load contents from intended file and deliver them to target client
+
+    :param sock: Websocket object belonging to the server session
+    :return: Tuple of file contents and contents length
+    """
     for indx in range(0, len(standard.client_bind) - 1):
         bite = read_file(standard.client_bind[indx], standard.client_bind[indx + 1])
         await sock.send(bite)
@@ -105,6 +158,12 @@ async def deliver_contents(sock: WebSocketClientProtocol) -> Generator[Tuple[byt
 
 
 async def collect_contents(sock: WebSocketClientProtocol) -> Generator[Tuple[bytes, int], None, None]:
+    """
+    Collect contents from target client and save them to intended file
+
+    :param sock: Websocket object belonging to the server session
+    :return: Tuple of file contents and contents length
+    """
     for _ in range(standard.client_chks - 1):
         mesgcont = await sock.recv()
         if isinstance(mesgcont, bytes):
@@ -114,17 +173,35 @@ async def collect_contents(sock: WebSocketClientProtocol) -> Generator[Tuple[byt
 
 
 async def deliver_digest_checks(sock: WebSocketClientProtocol) -> bool:
+    """
+    Inform target client with message digest of file contents
+
+    :param sock: Websocket object belonging to the server session
+    :return: Confirmation of the action completion
+    """
     general("Delivering contents digest for confirmation.")
     await sock.send(dumps({"call": "hash", "data": standard.client_hash.hexdigest()}))
     return True
 
 
 async def collect_digest_checks() -> bool:
+    """
+    Show textual message with message digest of file contents
+
+    :return: Confirmation of the action completion
+    """
     general("Collecting contents digest for confirmation.")
     return True
 
 
 async def deliver_confirmation(sock: WebSocketClientProtocol, data: str = standard.client_hash.hexdigest()) -> bool:
+    """
+    Inform target client of the file contents integrity confirmation
+
+    :param sock: Websocket object belonging to the server session
+    :param data: Message digest from the file contents exchanged
+    :return:
+    """
     standard.client_movestop = time.time()
     if data == standard.client_hash.hexdigest():
         general(f"Contents integrity verified (Mean {ease_size(standard.client_filesize / (standard.client_movestop - standard.client_movestrt))}/s).")
@@ -137,6 +214,12 @@ async def deliver_confirmation(sock: WebSocketClientProtocol, data: str = standa
 
 
 async def collect_confirmation(data: int = 0) -> bool:
+    """
+    Show textual message of the file contents integrity confirmation
+
+    :param data: Confirmation of the message digest comparison
+    :return: Confirmation of the action completion
+    """
     standard.client_movestop = time.time()
     if bool(data):
         general(f"Contents integrity verified (Mean {ease_size(standard.client_filesize / (standard.client_movestop - standard.client_movestrt))}/s).")
@@ -147,11 +230,22 @@ async def collect_confirmation(data: int = 0) -> bool:
 
 
 async def deliver_separation_from_mistaken_password(sock: WebSocketClientProtocol) -> bool:
+    """
+    Inform target client of disconnection due to mistaken password
+
+    :param sock: Websocket object belonging to the server session
+    :return: Confirmation of the action completion
+    """
     general("Delivering status update on mistaken password.")
     await sock.send(dumps({"call": "flub"}))
     return True
 
 
 async def collect_separation_from_mistaken_password() -> bool:
+    """
+    Show textual message of disconnection due to mistaken password
+
+    :return: Confirmation of the action completion
+    """
     general("Collecting status update on mistaken password.")
     return True

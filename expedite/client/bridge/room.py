@@ -45,11 +45,11 @@ from expedite.client.bridge.wind import Ui_mainwind
 from expedite.client.conn import (
     collect_confirmation,
     collect_connection_from_pairness,
+    collect_connection_to_server,
     collect_contents,
     collect_digest_checks,
     collect_dropping_summon,
     collect_metadata,
-    collect_permission_to_join,
     collect_separation_from_mistaken_password,
     deliver_confirmation,
     deliver_connection_to_server,
@@ -66,7 +66,12 @@ from expedite.view import warning
 
 
 class MainWindow(QMainWindow, Ui_mainwind):
-    def __init__(self):
+    def __init__(self) -> None:
+        """
+        Initialize the application to enable user interaction
+
+        :return:
+        """
         super().__init__()
         self.headtext = f"Expedite Bridge v{__versdata__}"
         self.loop = new_event_loop()
@@ -91,19 +96,34 @@ class MainWindow(QMainWindow, Ui_mainwind):
         self.timekeeper.timeout.connect(self.manage_events)
         self.timekeeper.start(1)
 
-    def handle_delivering_location(self):
+    def handle_delivering_location(self) -> None:
+        """
+        Select filepath for the intended file for delivering
+
+        :return:
+        """
         path = show_location_dialog(self, "dlvr")
         if path:
             self.dlvr_line_file.setText(path)
             self.dlvr_head_file.setText(f"Delivering <b>{truncate_text(basename(path), 28)}</b> ({ease_size(getsize(path))})")
 
-    def handle_collecting_location(self):
+    def handle_collecting_location(self) -> None:
+        """
+        Select filepath for the intended file for collecting
+
+        :return:
+        """
         path = show_location_dialog(self, "clct")
         if path:
             self.clct_line_file.setText(path)
             self.clct_head_file.setText(f"Saving to <b>{truncate_text(basename(path), 28)}</b>")
 
-    def show_detail(self):
+    def show_detail(self) -> None:
+        """
+        Retrieve application information text for showing on the dialog box
+
+        :return:
+        """
         self.show_dialog(
             QMessageBox.Information,
             "Detail",
@@ -116,7 +136,12 @@ class MainWindow(QMainWindow, Ui_mainwind):
             )
         )
 
-    def normal_delivering_side(self):
+    def normal_delivering_side(self) -> None:
+        """
+        Define defaults for delivering view
+
+        :return:
+        """
         self.dlvr_head_file.setText("No location selected")
         self.dlvr_line_size.setText(str(standard.chunking_size))
         self.dlvr_line_time.setText(str(standard.client_time))
@@ -124,7 +149,12 @@ class MainWindow(QMainWindow, Ui_mainwind):
         self.dlvr_line_pswd.clear()
         self.dlvr_line_endo.clear()
 
-    def normal_collecting_side(self):
+    def normal_collecting_side(self) -> None:
+        """
+        Define defaults for collecting view
+
+        :return:
+        """
         self.clct_head_file.setText("No location selected")
         self.clct_line_size.clear()
         self.clct_line_time.setText(str(standard.client_time))
@@ -132,13 +162,28 @@ class MainWindow(QMainWindow, Ui_mainwind):
         self.clct_line_pswd.clear()
         self.clct_line_endo.clear()
 
-    def random_delivering_password(self):
+    def random_delivering_password(self) -> None:
+        """
+        Insert randomly generated password in delivering view
+
+        :return:
+        """
         self.dlvr_line_pswd.setText(uuid4().hex[0:16].upper())
 
-    def random_collecting_password(self):
+    def random_collecting_password(self) -> None:
+        """
+        Insert randomly generated password in collecting view
+
+        :return:
+        """
         self.clct_line_pswd.setText(uuid4().hex[0:16].upper())
 
-    def incept_delivering_client(self):
+    def incept_delivering_client(self) -> None:
+        """
+        Initialize delivering of file contents on connection
+
+        :return:
+        """
         if not standard.client_progress:
             report = ValidateFields().report_dlvr(
                 self.dlvr_line_size.text(),
@@ -162,7 +207,12 @@ class MainWindow(QMainWindow, Ui_mainwind):
         else:
             self.show_dialog(QMessageBox.Warning, "Ongoing interaction", "Please wait for the ongoing interaction to complete first before starting another or considering cancelling the ongoing interaction.")
 
-    def incept_collecting_client(self):
+    def incept_collecting_client(self) -> None:
+        """
+        Initialize collecting of file contents on connection
+
+        :return:
+        """
         if not standard.client_progress:
             report = ValidateFields().report_clct(
                 self.clct_line_time.text(),
@@ -183,25 +233,48 @@ class MainWindow(QMainWindow, Ui_mainwind):
         else:
             self.show_dialog(QMessageBox.Warning, "Ongoing interaction", "Please wait for the ongoing interaction to complete first before starting another or considering cancelling the ongoing interaction.")
 
-    def initialize_connection(self):
+    def initialize_connection(self) -> None:
+        """
+        Form connection with exchange server to perform activity
+
+        :return:
+        """
         standard.client_host = self.sockaddr.text()
         standard.client_progress = True
         self.statarea.showMessage("Please wait while the client connects to the broker")
         talk()
         ensure_future(self.maintain_connection())
 
-    def normal_both_side(self):
+    def normal_both_side(self) -> None:
+        """
+        Define defaults for both delivering and collecting views
+
+        :return:
+        """
         self.normal_delivering_side()
         self.normal_collecting_side()
         self.identity.clear()
         self.progbarg.setValue(0)
         self.statarea.showMessage("READY")
 
-    def manage_events(self):
+    def manage_events(self) -> None:
+        """
+        Manage execution of event loop after regular time period
+
+        :return:
+        """
         self.loop.call_soon(self.loop.stop)
         self.loop.run_forever()
 
-    def show_dialog(self, icon, head, text):
+    def show_dialog(self, icon: QMessageBox.Icon, head: str, text: str) -> None:
+        """
+        Modify the dialog with the passed details before showing
+
+        :param icon: Icon to be used for visual representation
+        :param head: Head text for the subject of the dialog box
+        :param text: Body text for the subject of the dialog box
+        :return:
+        """
         dialog = QMessageBox(parent=self)
         dialog.setIcon(icon)
         dialog.setWindowTitle(f"{self.headtext} - {head}")
@@ -209,7 +282,12 @@ class MainWindow(QMainWindow, Ui_mainwind):
         dialog.setFont("IBM Plex Sans")
         dialog.exec()
 
-    async def maintain_connection(self):
+    async def maintain_connection(self) -> None:
+        """
+        Exchange data to the target client after connecting to the exchange server
+
+        :return:
+        """
         try:
             async with connect(standard.client_host) as self.sock:
                 get_event_loop().call_later(standard.client_time, lambda: ensure_future(self.deliver_suspension_from_expiry_bridge()))
@@ -221,7 +299,7 @@ class MainWindow(QMainWindow, Ui_mainwind):
                         if standard.client_plan in ["SEND", "RECV"]:
                             # If the purpose of the client is either DELIVERING or COLLECTING
                             if mesgdict["call"] == "okay":
-                                await collect_permission_to_join(mesgdict["iden"])
+                                await collect_connection_to_server(mesgdict["iden"])
                                 self.statarea.showMessage("Please share your acquired identity to begin interaction")
                                 self.identity.setText(f"{mesgdict["iden"]}")
                             elif mesgdict["call"] in ["awry", "lone"]:
@@ -323,7 +401,12 @@ class MainWindow(QMainWindow, Ui_mainwind):
         self.normal_both_side()
         standard.client_progress = False
 
-    async def show_deliver_contents(self):
+    async def show_deliver_contents(self) -> None:
+        """
+        Facilitate encrypting and delivering file contents
+
+        :return:
+        """
         standard.client_movestrt, progress = time.time(), 0
         async for dgst, size in deliver_contents(self.sock):
             self.statarea.showMessage(f"[{standard.client_endo}] Since {(time.time() - standard.client_movestrt):.2f} seconds | SHA256 {dgst[0:6]} ({ease_size(size)})")
@@ -331,7 +414,13 @@ class MainWindow(QMainWindow, Ui_mainwind):
             self.progbarg.setValue(progress)
         self.progbarg.setValue(100)
 
-    async def show_collect_contents(self, pack):
+    async def show_collect_contents(self, pack: bytes) -> None:
+        """
+        Facilitate collecting and decrypting file contents
+
+        :param pack: Byte chunk that is to be collected and decrypted
+        :return:
+        """
         standard.client_movestrt, progress = time.time(), 0
         fuse_file(pack)
         async for dgst, size in collect_contents(self.sock):
@@ -340,7 +429,12 @@ class MainWindow(QMainWindow, Ui_mainwind):
             self.progbarg.setValue(progress)
         self.progbarg.setValue(100)
 
-    async def deliver_suspension_from_expiry_bridge(self):
+    async def deliver_suspension_from_expiry_bridge(self) -> None:
+        """
+        Terminate the bridge session elegantly after the designated timeout
+
+        :return:
+        """
         if not standard.client_pair:
             await deliver_suspension_from_expiry(self.sock)
             await self.sock.close()

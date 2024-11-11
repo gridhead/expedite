@@ -24,6 +24,7 @@ replicated with the express permission of Red Hat, Inc.
 from json import loads
 
 from websockets.exceptions import ConnectionClosed
+from websockets.legacy.server import WebSocketServerProtocol
 
 from expedite.config import standard
 from expedite.server.conn import (
@@ -36,7 +37,13 @@ from expedite.server.conn import (
 from expedite.view import failure, general, warning
 
 
-async def oper(sock):
+async def exchange(sock: WebSocketServerProtocol) -> None:
+    """
+    Exchange data among connected clients depending on client identity, operation intent and target identity
+
+    :param sock: Websocket object belonging to the client
+    :return:
+    """
     try:
         async for mesgcont in sock:
             if isinstance(mesgcont, str):

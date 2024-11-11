@@ -31,7 +31,12 @@ from expedite.client.bridge import data  # noqa
 from expedite.client.bridge.room import MainWindow
 
 
-def load_custom_font():
+def load_custom_font() -> None:
+    """
+    Populate the application database with custom fonts
+
+    :return:
+    """
     fontlist = [
         ":font/font/sans-bold.ttf",
         ":font/font/sans-rlar.ttf",
@@ -42,7 +47,12 @@ def load_custom_font():
         QFontDatabase.addApplicationFont(indx)
 
 
-def main():
+def main() -> None:
+    """
+    Start the worker module to start the transfer service
+
+    :return:
+    """
     os.environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"
     QApplication.setStyle("Fusion")
     app = QApplication(sys.argv)

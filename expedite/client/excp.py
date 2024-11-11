@@ -22,5 +22,10 @@ replicated with the express permission of Red Hat, Inc.
 
 
 class PasswordMistaken(Exception):
-    def __init__(self):
+    def __init__(self) -> None:
+        """
+        Initialize an exception due to incorrect password being added on the collecting client
+
+        :return:
+        """
         self.name = "Password Mistaken"

@@ -27,6 +27,13 @@ from PySide6.QtWidgets import QFileDialog
 
 
 def show_location_dialog(parent=None, oper: str = "") -> str:
+    """
+    Select filepath for the intended file for delivering or collecting
+
+    :param parent: Parent window within which the location dialog exists
+    :param oper: Operation intent for choosing either file or directory
+    :return:
+    """
     dialog = QFileDialog()
     if oper == "dlvr":
         client_path = dialog.getOpenFileName(parent, "Select location", "", "All Files (*)")[0]
@@ -36,6 +43,13 @@ def show_location_dialog(parent=None, oper: str = "") -> str:
 
 
 def truncate_text(text: str = "", size: int = 32) -> str:
+    """
+    Limit text elements to a certain character count for an elegant fit
+
+    :param text: Text elements that need to be checked for fitting
+    :param size: Character count within which text needs to be fit
+    :return: Truncated text
+    """
     if len(text) >= size:
         return text[0:size-3] + "..."
     else:
@@ -43,6 +57,11 @@ def truncate_text(text: str = "", size: int = 32) -> str:
 
 
 def return_detail_text() -> str:
+    """
+    Retrieve application information text for showing on the dialog box
+
+    :return: Application information
+    """
     text = """
     <b>Expedite Bridge v{vers}</b><br/>
     <i>A simple encrypted file transfer service for humans</i><br/><br/>
@@ -54,7 +73,12 @@ def return_detail_text() -> str:
 
 
 class ValidateFields:
-    def __init__(self):
+    def __init__(self) -> None:
+        """
+        Initialize fields validation class for confirmation
+
+        :return:
+        """
         self.okay = {
             "size": False,
             "time": False,
@@ -70,7 +94,13 @@ class ValidateFields:
             "pswd": "Password cannot be an empty string"
         }
 
-    def verify_size(self, size):
+    def verify_size(self, size) -> None:
+        """
+        Ensure that processing size must be an integer value between 1024 and 524288
+
+        :param size: Processing size
+        :return:
+        """
         self.okay["size"] = True
         try:
             oper = int(size.strip())
@@ -79,7 +109,13 @@ class ValidateFields:
         except ValueError:
             self.okay["size"] = False
 
-    def verify_time(self, time):
+    def verify_time(self, time) -> None:
+        """
+        Ensure that expiry window must be an integer value between 5 and 300
+
+        :param time: Expiry window
+        :return:
+        """
         self.okay["time"] = True
         try:
             oper = int(time.strip())
@@ -88,38 +124,67 @@ class ValidateFields:
         except ValueError:
             self.okay["time"] = False
 
-    def verify_file(self, file):
+    def verify_file(self, file) -> None:
+        """
+        Ensure that filepath for delivering or collecting contents must exist
+
+        :param file: Load filepath
+        :return:
+        """
         self.okay["file"] = True
         if not exists(file):
             self.okay["file"] = False
 
-    def verify_path(self, path):
+    def verify_path(self, path) -> None:
+        """
+        Ensure that filepath for delivering or collecting contents must exist
+
+        :param path: Save filepath
+        :return:
+        """
         self.okay["path"] = True
         if path.strip() != "" and not exists(path):
             self.okay["path"] = False
 
-    def verify_pswd(self, pswd):
+    def verify_pswd(self, pswd) -> None:
+        """
+        Ensure that password cannot be an empty string
+
+        :param pswd: Password string
+        :return:
+        """
         self.okay["pswd"] = True
         if pswd.strip() == "":
             self.okay["pswd"] = False
 
-    def report_dlvr(self, size, time, file, pswd):
+    def report_dlvr(self, size, time, file, pswd) -> tuple[tuple[bool, bool, bool, bool], str]:
+        """
+        Retrieve field validation results for delivering intent
+
+        :param size: Validity confirmation of processing size
+        :param time: Validity confirmation of waiting window
+        :param file: Validity confirmation of delivering filepath
+        :param pswd: Validity confirmation of password string
+        :return: Validity confirmation for required elements
+        """
         self.verify_size(size)
         self.verify_time(time)
         self.verify_file(file)
         self.verify_pswd(pswd)
         lict = [self.text[indx] for indx in ["size", "time", "file", "pswd"] if not self.okay[indx]]
-        return (
-            (self.okay["size"], self.okay["time"], self.okay["file"], self.okay["pswd"]),
-            "\n".join(lict).strip()
-        )
+        return (self.okay["size"], self.okay["time"], self.okay["file"], self.okay["pswd"]), "\n".join(lict).strip()
 
-    def report_clct(self, time, path, pswd):
+    def report_clct(self, time, path, pswd) -> tuple[tuple[bool, bool, bool], str]:
+        """
+        Retrieve field validation results for collecting intent
+
+        :param time: Validity confirmation of waiting window
+        :param path: Validity confirmation of collecting filepath
+        :param pswd: Validity confirmation of password string
+        :return: Validity confirmation for required elements
+        """
         self.verify_time(time)
         self.verify_path(path)
         self.verify_pswd(pswd)
         lict = [self.text[indx] for indx in ["time", "path", "pswd"] if not self.okay[indx]]
-        return (
-            (self.okay["time"], self.okay["path"], self.okay["pswd"]),
-            "\n".join(lict).strip(),
-        )
+        return (self.okay["time"], self.okay["path"], self.okay["pswd"]), "\n".join(lict).strip()
