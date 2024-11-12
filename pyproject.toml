@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "expedite"
 version = "0.1.0"
-description = "Simple encrypted file transfer service"
+description = "Simple encrypted file transfer service for humans"
 authors = ["Akashdeep Dhar <akashdeep.dhar@gmail.com>"]
 license = "GPL-3.0-or-later"
 maintainers = ["Akashdeep Dhar <akashdeep.dhar@gmail.com>"]
@@ -9,7 +9,7 @@ readme = "README.md"
 homepage = "https://github.com/gridhead/expedite"
 repository = "https://github.com/gridhead/expedite"
 documentation = "https://github.com/gridhead/expedite/blob/main/README.md"
-keywords = ["file", "transfer", "delivering", "collecting"]
+keywords = ["websockets", "file", "transfer", "delivering", "collecting"]
 classifiers= [
     "Development Status :: 4 - Beta",
     "Environment :: X11 Applications :: Qt",

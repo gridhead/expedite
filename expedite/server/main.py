@@ -47,6 +47,7 @@ def work() -> None:
 
 @command(
     name="expedite",
+    help="Configure the service particulars before starting it",
     context_settings={"show_default": True},
 )
 @option(
