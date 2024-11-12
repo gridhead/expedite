@@ -1,6 +1,6 @@
 # Expedite
 
-Simple encrypted file transfer service
+Simple encrypted file transfer service for humans
 
 ## Introduction
 
@@ -30,87 +30,243 @@ available servers setup by me instead. Picking the server that is closer to
 your group of users can help with improving performance and reliability of the
 transfer. Please open up a pull request if you wish to list your server here.
 
-### Unsecured WebSockets connection
-
-It is recommended for using the unsecured WebSockets connection only for 
-testing and debugging purposes.
-
 - **Mumbai, MH**  
-  `ws://expedite-mumb.apexaltruism.net:6969`
+  `wss://expedite-mumb.gridhead.net` or `wss://expedite-mumb.gridhead.net:443`  
+  [**Grade A - Qualys**](https://www.ssllabs.com/ssltest/analyze.html?d=expedite-mumb.gridhead.net)  
+  [**Grade A - TestSSL**](https://github.com/gridhead/expedite/blob/main/data/test-mumb-12112024.txt)  
+  ![](https://raw.githubusercontent.com/gridhead/expedite/main/data/cert-mumb-12112024.png)
 
 - **Atlanta, GA**  
-  `ws://expedite-atla.apexaltruism.net:6969`
-
-### Secured WebSockets connection
-
-It is recommended for using the secured WebSockets connection for all kinds 
-of general file sharing purposes.
-
-- **Mumbai, MH**  
-  `wss://expedite-mumb.apexaltruism.net` or `wss://expedite-mumb.apexaltruism.net:443`  
-  [**Grade A - Qualys**](https://www.ssllabs.com/ssltest/analyze.html?d=expedite-mumb.apexaltruism.net)  
-  [**Test Result**](https://github.com/gridhead/expedite/blob/main/data/test-mumb-26072024.txt)  
-  ![](https://raw.githubusercontent.com/gridhead/expedite/main/data/cert-mumb-26072024.png)
-
-- **Atlanta, GA**  
-  `wss://expedite-atla.apexaltruism.net` or `wss://expedite-atla.apexaltruism.net:443`  
-  [**Grade A - Qualys**](https://www.ssllabs.com/ssltest/analyze.html?d=expedite-atla.apexaltruism.net)  
-  [**Test Result**](https://github.com/gridhead/expedite/blob/main/data/test-atla-26072024.txt)  
-  ![](https://raw.githubusercontent.com/gridhead/expedite/main/data/cert-atla-26072024.png)
+  `wss://expedite-atla.gridhead.net` or `wss://expedite-atla.gridhead.net:443`  
+  [**Grade A - Qualys**](https://www.ssllabs.com/ssltest/analyze.html?d=expedite-atla.gridhead.net)  
+  [**Grade A - TestSSL**](https://github.com/gridhead/expedite/blob/main/data/test-atla-12112024.txt)  
+  ![](https://raw.githubusercontent.com/gridhead/expedite/main/data/cert-atla-12112024.png)
 
 ## Illustration
 
-### Client - Bridge - Info
+### Client
+
+#### Bridge - Info
 
 ![](https://raw.githubusercontent.com/gridhead/expedite/main/data/bridge-info-stat.png)
 
-### Client - Bridge - Delivering - Static
+#### Bridge - Delivering - Static
 
 ![](https://raw.githubusercontent.com/gridhead/expedite/main/data/bridge-send-stat.png)
 
-### Client - Bridge - Collecting - Static
+#### Bridge - Collecting - Static
 
 ![](https://raw.githubusercontent.com/gridhead/expedite/main/data/bridge-recv-stat.png)
 
-### Client - Bridge - Delivering - Progress
+#### Bridge - Delivering - Progress
 
 ![](https://raw.githubusercontent.com/gridhead/expedite/main/data/bridge-send-prog.gif)
 
-### Client - Bridge - Collecting - Progress
+#### Bridge - Collecting - Progress
 
 ![](https://raw.githubusercontent.com/gridhead/expedite/main/data/bridge-recv-prog.gif)
 
-### Client - Prompt - Help
+#### Prompt - Help
 
-![](https://raw.githubusercontent.com/gridhead/expedite/main/data/prompt-help-stat.png)
+```shell
+(venv) $ ed-prompt --help
+```
 
-### Client - Prompt - Delivering - Help
+```
+Usage: ed-prompt [OPTIONS] COMMAND [ARGS]...
 
-![](https://raw.githubusercontent.com/gridhead/expedite/main/data/prompt-send-help.png)
+  Configure the service particulars before starting it
 
-### Client - Prompt - Collecting - Help
+Options:
+  -h, --host TEXT           Set the address for the service endpoint
+                            [required]
+  -t, --time INTEGER RANGE  Set the expiry period for participants  [default:
+                            150; 5<=x<=300]
+  -e, --endo TEXT           Set the identity of the opposing client
+  --version                 Show the version and exit.
+  --help                    Show this message and exit.
 
-![](https://raw.githubusercontent.com/gridhead/expedite/main/data/prompt-recv-help.png)
+Commands:
+  recv  Collect file through an encrypted transfer
+  send  Deliver file through an encrypted transfer
+```
 
-### Client - Prompt - Delivering - Static
+#### Prompt - Delivering - Help
 
-![](https://raw.githubusercontent.com/gridhead/expedite/main/data/prompt-send-stat.png)
+```shell
+(venv) $ ed-prompt send --help
+```
 
-### Client - Prompt - Collecting - Static
+```
+Usage: ed-prompt send [OPTIONS]
 
-![](https://raw.githubusercontent.com/gridhead/expedite/main/data/prompt-recv-stat.png)
+  Deliver file through an encrypted transfer
 
-### Client - Prompt - Delivering - Progress
+Options:
+  -p, --pswd TEXT           Set the password for delivering encryption
+                            [default: CD87C56C]
+  -f, --file PATH           Set the filepath for delivering to network
+                            [required]
+  -s, --size INTEGER RANGE  Set the unit size for file chunking (in B)
+                            [default: 65536; 1024<=x<=524288]
+  --help                    Show this message and exit.
+```
+
+#### Prompt - Collecting - Help
+
+```shell
+(venv) $ ed-prompt recv --help
+```
+
+```
+Usage: ed-prompt recv [OPTIONS]
+
+  Collect file through an encrypted transfer
+
+Options:
+  -p, --pswd TEXT  Set the password for collecting encryption  [required]
+  --help           Show this message and exit.
+```
+
+#### Prompt - Delivering - Static
+
+```shell
+(venv) $ ed-prompt --host wss://expedite-mumb.gridhead.net --time 150 --endo 2E8EC1AC send --pswd PASSWORDINCOMING --size 65536 --file dist/ed-bridge
+```
+
+```
+[2024-11-12 17:09:02] Expedite Client v0.1.0
+[2024-11-12 17:09:02] Addr. wss://expedite-mumb.gridhead.net
+[2024-11-12 17:09:02] Pass. PASSWORDINCOMING
+[2024-11-12 17:09:02] Plan. DELIVERING
+[2024-11-12 17:09:02] Wait. 150 seconds
+[2024-11-12 17:09:02] Please wait for 2E8EC1AC to begin interaction.
+[2024-11-12 17:09:02] Attempting to connect to the network.
+[2024-11-12 17:09:02] Successfully connected to the network.
+[2024-11-12 17:09:02] You are now identified as 14CF663D in the network.
+[2024-11-12 17:09:02] Attempting pairing with 2E8EC1AC.
+[2024-11-12 17:09:02] Starting transmission.
+[2024-11-12 17:09:02] Generating cryptography sign.
+[2024-11-12 17:09:02] Collecting delivering summon from 2E8EC1AC.
+[2024-11-12 17:09:02] Delivering contents for 'ed-bridge' (78.32MB) to 2E8EC1AC.
+[2024-11-12 17:09:19] Delivering contents digest for confirmation.
+[2024-11-12 17:09:20] Contents integrity verified (Mean 4.36MB/s).
+[2024-11-12 17:09:20] Delivering done after 18.12 seconds.
+[2024-11-12 17:09:20] Exiting.
+```
+
+#### Prompt - Collecting - Static
+
+```shell
+(venv) $ ed-prompt --host wss://expedite-mumb.gridhead.net --time 150 --endo 1AAE5935 recv --pswd PASSWORDINCOMING
+```
+
+```
+[2024-11-12 17:15:10] Expedite Client v0.1.0
+[2024-11-12 17:15:10] Addr. wss://expedite-mumb.gridhead.net
+[2024-11-12 17:15:10] Pass. PASSWORDINCOMING
+[2024-11-12 17:15:10] Plan. COLLECTING
+[2024-11-12 17:15:10] Wait. 150 seconds
+[2024-11-12 17:15:10] Please wait for 1AAE5935 to begin interaction.
+[2024-11-12 17:15:10] Attempting to connect to the network.
+[2024-11-12 17:15:10] Successfully connected to the network.
+[2024-11-12 17:15:10] You are now identified as 96B33383 in the network.
+[2024-11-12 17:15:10] Attempting pairing with 1AAE5935.
+[2024-11-12 17:15:10] Starting transmission.
+[2024-11-12 17:15:10] Generating cryptography sign.
+[2024-11-12 17:15:10] Delivering collection summon to 1AAE5935.
+[2024-11-12 17:15:10] Collecting contents for 'ed-bridge' (78.32MB) from 1AAE5935.
+[2024-11-12 17:15:32] Collecting contents digest for confirmation.
+[2024-11-12 17:15:32] Contents integrity verified (Mean 3.52MB/s).
+[2024-11-12 17:15:32] Collecting done after 22.57 seconds.
+[2024-11-12 17:15:32] Exiting.
+```
+
+#### Prompt - Delivering - Progress
 
 ![](https://raw.githubusercontent.com/gridhead/expedite/main/data/prompt-send-prog.gif)
 
-### Client - Prompt - Collecting - Progress
+#### Prompt - Collecting - Progress
 
 ![](https://raw.githubusercontent.com/gridhead/expedite/main/data/prompt-recv-prog.gif)
 
-### Server - Broker
+### Server
 
-![](https://raw.githubusercontent.com/gridhead/expedite/main/data/brok-stat.png)
+#### Help
+
+```shell
+(venv) $ ed-server --help
+```
+
+```
+Usage: ed-server [OPTIONS]
+
+  Configure the service particulars before starting it
+
+Options:
+  -a, --addr TEXT           Set the interface for the service endpoint
+                            [default: 127.0.0.1]
+  -p, --port INTEGER RANGE  Set the port value for the service endpoint
+                            [default: 8080; 64<=x<=65535]
+  --version                 Show the version and exit.
+  --help                    Show this message and exit.
+```
+
+#### Broker
+
+```shell
+(venv) $ ed-server --addr 0.0.0.0 --port 8181
+```
+
+```
+[2024-11-12 17:46:46] Expedite Server v0.1.0
+[2024-11-12 17:46:46] Addr. 0.0.0.0
+[2024-11-12 17:46:46] Port. 8181
+[2024-11-12 17:46:46] server listening on 0.0.0.0:8181
+[2024-11-12 17:48:30] connection open
+[2024-11-12 17:48:30] 97939184 joined with the intention of collecting.
+[2024-11-12 17:48:30] 97939184 is looking for ACE751B4 for 150 seconds.
+[2024-11-12 17:48:51] connection open
+[2024-11-12 17:48:51] DEA38DDF joined with the intention of delivering.
+[2024-11-12 17:48:51] DEA38DDF is waiting for client for 150 seconds.
+[2024-11-12 17:48:52] 97939184 left.
+[2024-11-12 17:48:52] connection closed
+[2024-11-12 17:49:00] connection open
+[2024-11-12 17:49:00] 69988F01 joined with the intention of collecting.
+[2024-11-12 17:49:00] 69988F01 is looking for DEA38DDF for 150 seconds.
+[2024-11-12 17:49:00] 69988F01 and DEA38DDF are positively paired.
+[2024-11-12 17:49:00] 69988F01 is attempting to fetch file contents from DEA38DDF.
+[2024-11-12 17:49:03] DEA38DDF is delivering digest to 69988F01.
+[2024-11-12 17:49:03] 69988F01 is delivering confirmation to DEA38DDF.
+[2024-11-12 17:49:03] DEA38DDF left.
+[2024-11-12 17:49:03] 69988F01 left.
+[2024-11-12 17:49:03] connection closed
+[2024-11-12 17:49:03] connection closed
+[2024-11-12 17:49:11] connection open
+[2024-11-12 17:49:11] 64595E02 joined with the intention of delivering.
+[2024-11-12 17:49:11] 64595E02 is waiting for client for 150 seconds.
+[2024-11-12 17:49:27] connection open
+[2024-11-12 17:49:27] ABBBF4B1 joined with the intention of delivering.
+[2024-11-12 17:49:27] ABBBF4B1 is looking for 64595E02 for 150 seconds.
+[2024-11-12 17:49:27] ABBBF4B1 and 64595E02 are negatively paired.
+[2024-11-12 17:49:27] ABBBF4B1 left.
+[2024-11-12 17:49:27] connection closed
+[2024-11-12 17:49:27] 64595E02 left.
+[2024-11-12 17:49:27] connection closed
+[2024-11-12 17:49:41] connection open
+[2024-11-12 17:49:41] 58FEEF9C joined with the intention of delivering.
+[2024-11-12 17:49:41] 58FEEF9C is looking for 64595E02 for 5 seconds.
+[2024-11-12 17:49:46] 58FEEF9C has achieved expiry.
+[2024-11-12 17:49:46] 58FEEF9C left.
+[2024-11-12 17:49:46] connection closed
+[2024-11-12 17:50:03] connection open
+[2024-11-12 17:50:03] 58B8F046 joined with the intention of collecting.
+[2024-11-12 17:50:03] 58B8F046 is looking for DEA38DDF for 5 seconds.
+[2024-11-12 17:50:08] 58B8F046 has achieved expiry.
+[2024-11-12 17:50:08] 58B8F046 left.
+[2024-11-12 17:50:08] connection closed
+...
+```
 
 ## Installation
 
@@ -164,6 +320,8 @@ of general file sharing purposes.
 
 #### From GitHub
 
+##### Nightly
+
 1.  Visit the **GitHub Actions** page of the project repository.
     ```
     https://github.com/gridhead/expedite/actions
@@ -177,6 +335,17 @@ of general file sharing purposes.
     https://github.com/gridhead/expedite/actions/workflows/mswn.yml
     ```
 4.  Please request for the builds if they are unavailable in the recent workflow runs.
+    ```
+    https://github.com/gridhead/expedite/issues
+    ```
+
+##### Stable
+
+1.  Visit the **GitHub Releases** page of the project repository.
+    ```
+    https://github.com/gridhead/expedite/releases
+    ```
+2.  Please file for bug reports and feature requests based on the stable releases.
     ```
     https://github.com/gridhead/expedite/issues
     ```
@@ -267,7 +436,7 @@ of general file sharing purposes.
     (venv) $ ed-client --host ws://localhost:9090 --time 30 send --file /path/to/file.extn --pswd expedite --size 131072
     ```
     ```
-    [2024-07-06 11:52:10] Expedite Client v0.1.0a2
+    [2024-07-06 11:52:10] Expedite Client v0.1.0
     [2024-07-06 11:52:10] Addr. ws://localhost:9090
     [2024-07-06 11:52:10] Pass. expedite
     [2024-07-06 11:52:10] Plan. DELIVERING
@@ -290,7 +459,7 @@ of general file sharing purposes.
     (venv) $ ed-client --host ws://localhost:9090 --time 30 --endo DEADCAFE send --file /path/to/file.extn --pswd expedite --size 131072
     ```
     ```
-    [2024-07-06 12:02:09] Expedite Client v0.1.0a2
+    [2024-07-06 12:02:09] Expedite Client v0.1.0
     [2024-07-06 12:02:09] Addr. ws://localhost:9090
     [2024-07-06 12:02:09] Pass. expedite
     [2024-07-06 12:02:09] Plan. DELIVERING
@@ -329,7 +498,7 @@ of general file sharing purposes.
     (venv) $ ed-client --host ws://localhost:8080 --time 30 recv --pswd expedite
     ```
     ```
-    [2024-07-06 12:57:43] Expedite Client v0.1.0a2
+    [2024-07-06 12:57:43] Expedite Client v0.1.0
     [2024-07-06 12:57:43] Addr. ws://localhost:8080
     [2024-07-06 12:57:43] Pass. expedite
     [2024-07-06 12:57:43] Plan. COLLECTING
@@ -350,7 +519,7 @@ of general file sharing purposes.
     (venv) $ ed-client --host ws://localhost:8080 --time 30 --endo DEADCAFE recv --pswd expedite
     ```
     ```
-    [2024-07-06 12:55:30] Expedite Client v0.1.0a2
+    [2024-07-06 12:55:30] Expedite Client v0.1.0
     [2024-07-06 12:55:30] Addr. ws://localhost:8080
     [2024-07-06 12:55:30] Pass. expedite
     [2024-07-06 12:55:30] Plan. COLLECTING
