@@ -49,11 +49,12 @@ async def exchange_insert(sock: WebSocketServerProtocol, plan: str = standard.cl
     if sock not in standard.connection_dict:
         if plan in ["SEND", "RECV"]:
             iden = uuid4().hex[0:8].upper()
+            remote_addr = f"{sock.remote_address[0]}:{sock.remote_address[1]}"
             standard.connection_dict[sock] = ExpediteConnection(iden, plan, scan, time)
             if plan == "SEND":
-                warning(f"{iden} joined with the intention of delivering.")
+                warning(f"{iden} from {remote_addr} joined with the intention of delivering.")
             elif plan == "RECV":
-                warning(f"{iden} joined with the intention of collecting.")
+                warning(f"{iden} from {remote_addr} joined with the intention of collecting.")
             if scan == "":
                 general(f"{iden} is waiting for client for {time} seconds.")
             else:
@@ -86,11 +87,12 @@ async def exchange_remove(sock: WebSocketServerProtocol) -> bool:
     :return: Confirmation of the action completion
     """
     if sock in standard.connection_dict:
+        remote_addr = f"{sock.remote_address[0]}:{sock.remote_address[1]}"
         if standard.connection_dict[sock].ptsc in standard.connection_dict and standard.connection_dict[sock].ptsc.state == 1:
             warning(f"{standard.connection_dict[sock].ptid} left.")
             await standard.connection_dict[sock].ptsc.close(code=1000)
             standard.connection_dict.pop(standard.connection_dict[sock].ptsc)
-        warning(f"{standard.connection_dict[sock].iden} left.")
+        warning(f"{standard.connection_dict[sock].iden} from {remote_addr} left.")
         await sock.close(code=1000)
         standard.connection_dict.pop(sock)
         return True
