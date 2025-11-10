@@ -31,7 +31,7 @@ jobs:
           GITHUB_HASH: ${{ github.sha }}
 
       - name: Upload the project binaries for Expedite Bridge
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: ed-bridge.mswn
           path: dist/ed-bridge-*.exe
@@ -45,7 +45,7 @@ jobs:
           GITHUB_HASH: ${{ github.sha }}
 
       - name: Upload the project binaries for Expedite Prompt
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: ed-prompt.mswn
           path: dist/ed-prompt-*.exe
@@ -59,7 +59,7 @@ jobs:
           GITHUB_HASH: ${{ github.sha }}
 
       - name: Upload the project binaries for Expedite Server
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: ed-server.mswn
           path: dist/ed-server-*.exe
