@@ -9,7 +9,7 @@ jobs:
 
     steps:
       - name: Checkout the codebase in local working directory
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup a functioning local Python 3 installation
         uses: actions/setup-python@v5
