@@ -59,6 +59,7 @@ client_fileinit = False
 client_saltsize = 16
 client_movestrt = 0
 client_movestop = 0
+client_avglat = 0.0
 client_salt = b""
 client_invc = b""
 client_code = b""
@@ -94,8 +95,8 @@ client_text = {
     "iuri": "Interaction cannot proceed further as the client cannot connect reliably to the broker server using the provided broker server URI. Please try again to start interaction after revising the broker server URI.",
     "rest": "Interaction cannot proceed further as the client has timed out waiting for pairing. Please consider increasing the expiry time for participants and requesting the other client to connect as soon as possible.",
     "flub": "Interaction cannot proceed further as the client has been provided with a mistaken password. Please try again while confirming that the correct password is provided at both delivering and collecting clients.",
-    "succ": "Contents integrity verified.<br/><br/>The client <b>{iden}</b> has succeeded to {verb} file contents {drct} client <b>{endo}</b>.<br/><br/><b>File name.</b> {name}<br/><b>File size.</b> {size}<br/><b>SHA256 sum.</b> {hash}<br/><b>Duration.</b> {time}<br/><b>Mean speed.</b> {spid}",
-    "fail": "Contents integrity mismatch.<br/><br/>The client <b>{iden}</b> has failed to {verb} file contents {drct} client <b>{endo}</b>.<br/><br/><b>File name.</b> {name}<br/><b>File size.</b> {size}<br/><b>SHA256 sum.</b> {hash}<br/><b>Duration.</b> {time}<br/><b>Mean speed.</b> {spid}",
+    "succ": "Contents integrity verified.<br/><br/>The client <b>{iden}</b> has succeeded to {verb} file contents {drct} client <b>{endo}</b>.<br/><br/><b>File name.</b> {name}<br/><b>File size.</b> {size}<br/><b>SHA256 sum.</b> {hash}<br/><b>Duration.</b> {time}<br/><b>Mean speed.</b> {spid}<br/><b>Average latency.</b> {latn}",
+    "fail": "Contents integrity mismatch.<br/><br/>The client <b>{iden}</b> has failed to {verb} file contents {drct} client <b>{endo}</b>.<br/><br/><b>File name.</b> {name}<br/><b>File size.</b> {size}<br/><b>SHA256 sum.</b> {hash}<br/><b>Duration.</b> {time}<br/><b>Mean speed.</b> {spid}<br/><b>Average latency.</b> {latn}",
 }
 
 logrconf = {
